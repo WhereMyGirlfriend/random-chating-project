@@ -5,11 +5,9 @@ import nine.valorant.org.randomchatingproject.dto.VerifyMailDto;
 import nine.valorant.org.randomchatingproject.service.MailgunService;
 import nine.valorant.org.randomchatingproject.service.UserService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+@RequestMapping("user")
 @RestController
 public class UserController {
 

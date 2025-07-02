@@ -1,14 +1,18 @@
 package nine.valorant.org.randomchatingproject.service;
 
+import nine.valorant.org.randomchatingproject.dto.UserNicknameUpdateDto;
+import nine.valorant.org.randomchatingproject.dto.UserPasswordUpdateRequestDto;
 import nine.valorant.org.randomchatingproject.dto.UserRegisterRequestDto;
 import nine.valorant.org.randomchatingproject.entity.User;
 import nine.valorant.org.randomchatingproject.entity.VerifyMails;
 import nine.valorant.org.randomchatingproject.repository.UserRepository;
 import nine.valorant.org.randomchatingproject.repository.VerifyMailRepository;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.Random;
 
 @Service
@@ -59,6 +63,37 @@ public class UserService {
         userRepository.save(user);
 
         mailgunService.sendMail(requestDto.getEmail(), "valorant-랜덤채팅", verifyCode);
+    }
+
+    public void resetPassword(Long userId, UserPasswordUpdateRequestDto requestDto){
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+
+        String hashedPassword = (user.getPassword());
+        String currentPasswordInput = requestDto.getCurrentPwd();
+
+        if (!passwordEncoder.matches(currentPasswordInput, hashedPassword)) {
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+        }
+
+        String newPwd = passwordEncoder.encode(requestDto.getNewPwd());
+        user.setPassword(newPwd);
+        userRepository.save(user);
+    }
+
+    public void renewNickname(Long userId, UserNicknameUpdateDto requestDto){
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+
+        String hashedPassword = (user.getPassword());
+
+        String currentPasswordInput = requestDto.getPassword();
+        if (!passwordEncoder.matches(currentPasswordInput, hashedPassword)) {
+            throw new IllegalArgumentException("비밀번호 일치하지 않습니다.");
+        }
+
+        user.setNickname(requestDto.getNewNickname());
+        userRepository.save(user);
     }
 
     private String generateSixDigitCode() {
