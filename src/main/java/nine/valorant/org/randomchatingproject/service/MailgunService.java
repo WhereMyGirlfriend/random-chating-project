@@ -8,6 +8,8 @@ import nine.valorant.org.randomchatingproject.repository.VerifyMailRepository;
 import org.springframework.stereotype.Service;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import org.springframework.beans.factory.annotation.Value;
+
 
 import java.util.Optional;
 
@@ -23,8 +25,14 @@ public class MailgunService {
         this.verifyMailRepository = verifyMailRepository;
     }
 
-    private final String apiKey = "70f9b0fd68f436b1efc95f624689d5c8-6d5bd527-6393fb5a";
-    private final String domain = "sandbox5d50124e6ccd4297a17e455ee59e48cf.mailgun.org";
+    @Value("${mailgun.api.key}")
+    private String mailgun_api_key;
+
+    @Value("${mailgun.domain}")
+    private String mailgun_domain;
+    
+    private final String apiKey = mailgun_api_key;
+    private final String domain = mailgun_domain;
 
     public void sendMail(String to, String subject, String text) {
         try {

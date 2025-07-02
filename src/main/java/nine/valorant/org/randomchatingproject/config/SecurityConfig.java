@@ -31,7 +31,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain jwtFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         http
-                .securityMatcher("/update/password") // JWT 필터 적용할 경로
+                .securityMatcher("/update/**") // JWT 필터 적용할 경로
                 .authorizeHttpRequests(authz -> authz
                         .anyRequest().authenticated()
                 )

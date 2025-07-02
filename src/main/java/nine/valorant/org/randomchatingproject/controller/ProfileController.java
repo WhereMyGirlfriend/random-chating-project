@@ -40,8 +40,6 @@ public class ProfileController {
     @PostMapping("/username")
     public ResponseEntity<String> updateNickname(@AuthenticationPrincipal UserDetails userDetails, @RequestBody UsernameUpdateDto usernameUpdateDto) {
 
-        System.out.println("컨트롤러 진입!");
-
         Optional<User> user = userRepository.findByUsername(userDetails.getUsername());
         if (user.isEmpty()) {
             throw new IllegalArgumentException("User not found");
