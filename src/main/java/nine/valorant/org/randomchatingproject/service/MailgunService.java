@@ -30,7 +30,7 @@ public class MailgunService {
 
     @Value("${mailgun.domain}")
     private String mailgun_domain;
-    
+
     private final String apiKey = mailgun_api_key;
     private final String domain = mailgun_domain;
 
