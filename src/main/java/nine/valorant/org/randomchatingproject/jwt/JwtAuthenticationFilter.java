@@ -4,9 +4,13 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -15,9 +19,12 @@ import java.io.IOException;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtProvider jwtProvider;
+    private UserDetailsService userDetailsService;
+    private JwtProvider jwtProvider;
 
-    public JwtAuthenticationFilter(JwtProvider jwtProvider) {
+    @Autowired
+    public void setUserDetailsService(@Lazy UserDetailsService userDetailsService, JwtProvider jwtProvider) {
+        this.userDetailsService = userDetailsService;
         this.jwtProvider = jwtProvider;
     }
 
@@ -39,16 +46,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        String userId = jwtProvider.getUserId(token);
+        String username = jwtProvider.getUsername(token); // userId가 아니라 username/email 등
 
-        // 5. UserDetails 생성 (DB 조회 또는 커스텀 UserDetails)
-        // 여기서는 예시로 권한 없이 생성
-        Authentication authentication = new UsernamePasswordAuthenticationToken(userId, null, null);
+        // 반드시 UserDetailsService로 UserDetails 객체를 가져온다
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-        // 6. SecurityContext에 등록
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                userDetails, null, userDetails.getAuthorities()
+        );
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // 7. 다음 필터로 넘김
         filterChain.doFilter(request, response);
     }
 }

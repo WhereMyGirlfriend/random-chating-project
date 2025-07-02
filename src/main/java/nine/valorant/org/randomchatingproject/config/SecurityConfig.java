@@ -1,10 +1,13 @@
 package nine.valorant.org.randomchatingproject.config;
 
 import nine.valorant.org.randomchatingproject.jwt.JwtAuthenticationFilter;
+import nine.valorant.org.randomchatingproject.repository.UserRepository;
+import nine.valorant.org.randomchatingproject.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,9 +24,14 @@ public class SecurityConfig {
     }
 
     @Bean
+    public UserDetailsService userDetailsService(UserRepository userRepository) {
+        return new CustomUserDetailsService(userRepository);
+    }
+
+    @Bean
     public SecurityFilterChain jwtFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         http
-                .securityMatcher("/update/*") // JWT 필터 적용할 경로
+                .securityMatcher("/update/password") // JWT 필터 적용할 경로
                 .authorizeHttpRequests(authz -> authz
                         .anyRequest().authenticated()
                 )

@@ -26,7 +26,7 @@ public class User {
 
     // 닉네임
     @Column(nullable = false, unique = true, length = 30)
-    private String nickname;
+    private String username;
 
     // 성별
     @Enumerated(EnumType.STRING)

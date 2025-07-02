@@ -23,12 +23,12 @@ public class JwtProvider {
     }
 
     // Access Token 생성
-    public String generateToken(String userId, long expireMillis) {
+    public String generateToken(String username) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + EXPIRATION_TIME);
 
         return Jwts.builder()
-                .setSubject(userId)
+                .setSubject(username)
                 .setIssuedAt(now)
                 .setExpiration(expiry)
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -53,7 +53,7 @@ public class JwtProvider {
     }
 
     // 토큰에서 사용자 ID 추출
-    public String getUserId(String token) {
+    public String getUsername(String token) {
         Claims claims = Jwts.parser()
                 .setSigningKey(key)
                 .build()
