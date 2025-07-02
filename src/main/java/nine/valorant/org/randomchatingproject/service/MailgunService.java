@@ -1,0 +1,58 @@
+package nine.valorant.org.randomchatingproject.service;
+
+import nine.valorant.org.randomchatingproject.dto.VerifyMailDto;
+import nine.valorant.org.randomchatingproject.entity.User;
+import nine.valorant.org.randomchatingproject.entity.VerifyMails;
+import nine.valorant.org.randomchatingproject.repository.UserRepository;
+import nine.valorant.org.randomchatingproject.repository.VerifyMailRepository;
+import org.springframework.stereotype.Service;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
+
+import java.util.Optional;
+
+@Service
+public class MailgunService {
+
+    private final UserRepository userRepository;
+    private final VerifyMailRepository verifyMailRepository;
+
+    public MailgunService(UserRepository userRepository,
+                          VerifyMailRepository verifyMailRepository) {
+        this.userRepository = userRepository;
+        this.verifyMailRepository = verifyMailRepository;
+    }
+
+    private final String apiKey = "70f9b0fd68f436b1efc95f624689d5c8-6d5bd527-6393fb5a";
+    private final String domain = "sandbox5d50124e6ccd4297a17e455ee59e48cf.mailgun.org";
+
+    public void sendMail(String to, String subject, String text) {
+        try {
+            Unirest.post("https://api.mailgun.net/v3/" + domain + "/messages")
+                    .basicAuth("api", apiKey)
+                    .queryString("from", "Your Service <postmaster@" + domain + ">")
+                    .queryString("to", to)
+                    .queryString("subject", subject)
+                    .queryString("text", text)
+                    .asJson();
+        } catch (UnirestException e) {
+            throw new RuntimeException("메일 전송 실패", e);
+        }
+    }
+
+    public void verifyMail(VerifyMailDto verifyMailDto) {
+        Optional<VerifyMails> verifyMails = verifyMailRepository.findByCode(verifyMailDto.getCode());
+
+        if (verifyMails.isEmpty()) {
+            throw new IllegalArgumentException("해당 이메일의 인증 코드가 없습니다.");
+        }
+        verifyMailRepository.delete(verifyMails.get());
+
+        Optional<User> user = userRepository.findByEmail(verifyMails.get().getEmail());
+
+        User foundUser =  user.get();
+        foundUser.setVarified(true);
+
+        userRepository.save(foundUser);
+    }
+}

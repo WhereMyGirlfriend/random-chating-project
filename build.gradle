@@ -1,0 +1,53 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.3'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'nine.valorant.org'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation 'net.dv8tion:JDA:5.0.0-beta.20'
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa") // JPA 의존성
+    testImplementation("org.springframework.boot:spring-boot-starter-test") // 테스트를 위한 의존성
+    runtimeOnly("com.h2database:h2") // 테스트를 위한 의존성
+
+    // SockJS & STOMP JS
+    implementation 'org.webjars:sockjs-client:1.5.1'
+    implementation 'org.webjars:stomp-websocket:2.3.4'
+
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    //메일건
+    implementation 'com.mashape.unirest:unirest-java:1.4.9'
+
+    //스프링 시큐리티
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
