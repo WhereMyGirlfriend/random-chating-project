@@ -31,14 +31,11 @@ public class MailgunService {
     @Value("${mailgun.domain}")
     private String mailgun_domain;
 
-    private final String apiKey = mailgun_api_key;
-    private final String domain = mailgun_domain;
-
     public void sendMail(String to, String subject, String text) {
         try {
-            Unirest.post("https://api.mailgun.net/v3/" + domain + "/messages")
-                    .basicAuth("api", apiKey)
-                    .queryString("from", "Your Service <postmaster@" + domain + ">")
+            Unirest.post("https://api.mailgun.net/v3/" + mailgun_domain + "/messages")
+                    .basicAuth("api", mailgun_api_key)
+                    .queryString("from", "Your Service <postmaster@" + mailgun_domain + ">")
                     .queryString("to", to)
                     .queryString("subject", subject)
                     .queryString("text", text)

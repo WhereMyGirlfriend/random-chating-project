@@ -22,14 +22,8 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody UserRegisterRequestDto requestDto) {
-        try {
-            userService.userRegister(requestDto);
-            return ResponseEntity.ok("회원가입 신청이 완료되었습니다. 이메일을 확인해 주세요.");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("회원가입 중 오류가 발생했습니다.");
-        }
+        userService.userRegister(requestDto);
+        return ResponseEntity.ok("회원가입 신청이 완료되었습니다. 이메일을 확인해 주세요.");
     }
 
     @PostMapping("/verify")

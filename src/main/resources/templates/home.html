@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>게임 채팅 로비</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+      position: relative;
+    }
+
+    .header h1 {
+      font-size: 48px;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .header p {
+      font-size: 18px;
+      opacity: 0.9;
+    }
+
+    .user-info {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: rgba(255,255,255,0.2);
+      padding: 10px 20px;
+      border-radius: 25px;
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .user-avatar {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      background: linear-gradient(45deg, #4CAF50, #45a049);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+    }
+
+    .logout-btn {
+      background: rgba(255,255,255,0.3);
+      color: white;
+      border: none;
+      padding: 5px 15px;
+      border-radius: 15px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.3s;
+    }
+
+    .logout-btn:hover {
+      background: rgba(255,255,255,0.5);
+    }
+
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      align-items: start;
+    }
+
+    .section-card {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease;
+    }
+
+    .section-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .section-title {
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 20px;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .create-form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-label {
+      font-weight: 600;
+      color: #555;
+      font-size: 14px;
+    }
+
+    .form-input {
+      padding: 15px;
+      border: 2px solid #e1e5e9;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: all 0.3s;
+      background: #fafafa;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #667eea;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .create-btn {
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      padding: 15px 20px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .create-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .create-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .room-list-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .refresh-btn {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .refresh-btn:hover {
+      background: #218838;
+      transform: scale(1.05);
+    }
+
+    .room-list {
+      max-height: 500px;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+
+    .room-list::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .room-list::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+
+    .room-list::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 10px;
+    }
+
+    .room-item {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border: 2px solid transparent;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 15px;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .room-item:hover {
+      border-color: #667eea;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+    }
+
+    .room-name {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .room-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .room-creator {
+      color: #666;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .room-players {
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 15px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .room-time {
+      color: #999;
+      font-size: 12px;
+      text-align: right;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #999;
+      padding: 60px 20px;
+      font-style: italic;
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+      opacity: 0.5;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 10px;
+      color: white;
+      font-weight: bold;
+      z-index: 1001;
+      transform: translateX(400px);
+      transition: transform 0.3s;
+    }
+
+    .notification.show {
+      transform: translateX(0);
+    }
+
+    .notification.success {
+      background: linear-gradient(45deg, #28a745, #20c997);
+    }
+
+    .notification.error {
+      background: linear-gradient(45deg, #dc3545, #fd7e14);
+    }
+
+    @media (max-width: 768px) {
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+
+      .header h1 {
+        font-size: 36px;
+      }
+
+      .section-card {
+        padding: 20px;
+      }
+
+      .user-info {
+        position: relative;
+        margin-bottom: 20px;
+        justify-self: center;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="user-info">
+      <div class="user-avatar" id="userAvatar">U</div>
+      <span id="currentUser">로딩중...</span>
+      <button class="logout-btn" onclick="logout()">로그아웃</button>
+    </div>
+    <h1>🎮 게임 채팅 로비</h1>
+    <p>원하는 게임방을 만들거나 참가해보세요!</p>
+  </div>
+
+  <div class="main-content">
+    <div class="section-card">
+      <h2 class="section-title">
+        <span>🏗️</span>
+        새 게임방 만들기
+      </h2>
+      <form id="createRoomForm" class="create-form">
+        <div class="form-group">
+          <label class="form-label">게임 이름</label>
+          <input type="text" id="gameName" class="form-input"
+                 placeholder="예: 리그오브레전드, 오버워치, 발로란트" required
+                 maxlength="50">
+        </div>
+        <button type="submit" class="create-btn" id="createBtn">
+          방 생성하기
+        </button>
+      </form>
+    </div>
+
+    <div class="section-card">
+      <div class="room-list-header">
+        <h2 class="section-title">
+          <span>🏠</span>
+          활성 게임방
+        </h2>
+        <button id="refreshBtn" class="refresh-btn">
+          <span>🔄</span>
+          새로고침
+        </button>
+      </div>
+
+      <div class="loading" id="roomListLoading">
+        <div class="spinner"></div>
+        방 목록을 불러오는 중...
+      </div>
+
+      <div id="roomList" class="room-list">
+        <div class="empty-state">
+          <div class="empty-state-icon">🏠</div>
+          아직 생성된 방이 없습니다.<br>
+          첫 번째 방을 만들어보세요!
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="notification" class="notification"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+<script>
+  let stompClient = null;
+  let currentUsername = null;
+  let authToken = null;
+
+  const createRoomForm = document.getElementById('createRoomForm');
+  const createBtn = document.getElementById('createBtn');
+  const roomList = document.getElementById('roomList');
+  const roomListLoading = document.getElementById('roomListLoading');
+  const refreshBtn = document.getElementById('refreshBtn');
+  const notification = document.getElementById('notification');
+  const currentUserEl = document.getElementById('currentUser');
+  const userAvatar = document.getElementById('userAvatar');
+
+  document.addEventListener('DOMContentLoaded', function() {
+    checkAuthAndInit();
+  });
+
+  function checkAuthAndInit() {
+    authToken = localStorage.getItem('authToken');
+
+    if (!authToken || !isValidToken(authToken)) {
+      window.location.href = '/login';
+      return;
+    }
+
+    try {
+      const payload = JSON.parse(atob(authToken.split('.')[1]));
+      currentUsername = payload.sub;
+
+      currentUserEl.textContent = currentUsername;
+      userAvatar.textContent = currentUsername.charAt(0).toUpperCase();
+
+      initializeApp();
+    } catch (error) {
+      console.error('토큰 파싱 오류:', error);
+      logout();
+    }
+  }
+
+  function initializeApp() {
+    connectWebSocket();
+    loadRoomList();
+    setupEventListeners();
+  }
+
+  function setupEventListeners() {
+    createRoomForm.addEventListener('submit', handleCreateRoom);
+    refreshBtn.addEventListener('click', loadRoomList);
+  }
+
+  function connectWebSocket() {
+    try {
+      const socket = new SockJS('/ws');
+      stompClient = Stomp.over(socket);
+
+      const headers = {
+        'Authorization': 'Bearer ' + authToken
+      };
+
+      stompClient.connect(headers, function() {
+        console.log('WebSocket 연결됨');
+
+        stompClient.subscribe('/topic/rooms', function(message) {
+          console.log('방 목록 업데이트 알림 받음');
+          loadRoomList();
+        });
+      }, function(error) {
+        console.error('WebSocket 연결 실패:', error);
+        showNotification('서버 연결에 실패했습니다.', 'error');
+      });
+    } catch (error) {
+      console.error('WebSocket 초기화 실패:', error);
+      showNotification('WebSocket 초기화에 실패했습니다.', 'error');
+    }
+  }
+
+  async function handleCreateRoom(e) {
+    e.preventDefault();
+
+    const gameName = document.getElementById('gameName').value.trim();
+
+    if (!gameName) {
+      showNotification('게임 이름을 입력해주세요.', 'error');
+      return;
+    }
+
+    createBtn.disabled = true;
+    createBtn.textContent = '생성 중...';
+
+    try {
+      const response = await fetch('/api/rooms/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + authToken
+        },
+        body: JSON.stringify({
+          gameName: gameName
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        showNotification('방이 성공적으로 생성되었습니다!', 'success');
+        document.getElementById('gameName').value = '';
+        setTimeout(() => {
+          window.location.href = `/room/${result.roomId}`;
+        }, 1000);
+      } else {
+        if (response.status === 401) {
+          logout();
+          return;
+        }
+        showNotification(result.error || '방 생성에 실패했습니다.', 'error');
+      }
+    } catch (error) {
+      console.error('방 생성 오류:', error);
+      showNotification('방 생성 중 오류가 발생했습니다.', 'error');
+    } finally {
+      createBtn.disabled = false;
+      createBtn.textContent = '방 생성하기';
+    }
+  }
+
+  async function loadRoomList() {
+    roomListLoading.style.display = 'block';
+
+    try {
+      const response = await fetch('/api/rooms/list', {
+        headers: {
+          'Authorization': 'Bearer ' + authToken
+        }
+      });
+
+      if (response.status === 401) {
+        logout();
+        return;
+      }
+
+      const rooms = await response.json();
+      renderRoomList(rooms);
+    } catch (error) {
+      console.error('방 목록 로드 오류:', error);
+      showNotification('방 목록을 불러오는데 실패했습니다.', 'error');
+      renderRoomList([]);
+    } finally {
+      roomListLoading.style.display = 'none';
+    }
+  }
+
+  function renderRoomList(rooms) {
+    if (rooms.length === 0) {
+      roomList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🏠</div>
+                        아직 생성된 방이 없습니다.<br>
+                        첫 번째 방을 만들어보세요!
+                    </div>
+                `;
+      return;
+    }
+
+    roomList.innerHTML = rooms.map(room => {
+      const createdTime = new Date(room.createdAt);
+      const timeString = formatTimeAgo(createdTime);
+
+      return `
+                    <div class="room-item" onclick="joinRoom('${room.roomId}', '${escapeHtml(room.gameName)}')">
+                        <div class="room-name">
+                            <span>🎮</span>
+                            ${escapeHtml(room.gameName)}
+                        </div>
+                        <div class="room-info">
+                            <span class="room-creator">
+                                <span>👤</span>
+                                ${escapeHtml(room.creator)}
+                            </span>
+                            <span class="room-players">${room.currentPlayers}/${room.maxPlayers}명</span>
+                        </div>
+                        <div class="room-time">${timeString}</div>
+                    </div>
+                `;
+    }).join('');
+  }
+
+  function joinRoom(roomId, gameName) {
+    window.location.href = `/room/${roomId}`;
+  }
+
+  function logout() {
+    localStorage.removeItem('authToken');
+    if (stompClient) {
+      stompClient.disconnect();
+    }
+    window.location.href = '/login';
+  }
+
+  function showNotification(message, type = 'success') {
+    notification.textContent = message;
+    notification.className = `notification ${type}`;
+    notification.classList.add('show');
+
+    setTimeout(() => {
+      notification.classList.remove('show');
+    }, 3000);
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function formatTimeAgo(date) {
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return '방금 전';
+    if (diffMins < 60) return `${diffMins}분 전`;
+    if (diffHours < 24) return `${diffHours}시간 전`;
+    function formatTimeAgo(date) {
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMins / 60);
+      const diffDays = Math.floor(diffHours / 24);
+
+      if (diffMins < 1) return '방금 전';
+      if (diffMins < 60) return `${diffMins}분 전`;
+      if (diffHours < 24) return `${diffHours}시간 전`;
+      if (diffDays < 7) return `${diffDays}일 전`;
+
+      return date.toLocaleDateString('ko-KR', {
+        month: 'short',
+        day: 'numeric'
+      });
+    }
+
+    function isValidToken(token) {
+      if (!token) return false;
+
+      try {
+        const parts = token.split('.');
+        if (parts.length !== 3) return false;
+
+        const payload = JSON.parse(atob(parts[1]));
+        const currentTime = Math.floor(Date.now() / 1000);
+
+        return payload.exp > currentTime;
+      } catch (error) {
+        return false;
+      }
+    }
+</script>
+</body>
+</html>
