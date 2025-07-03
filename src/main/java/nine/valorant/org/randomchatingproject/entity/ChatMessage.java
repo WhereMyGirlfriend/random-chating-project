@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
 
@@ -22,8 +22,7 @@ import java.time.LocalDateTime;
 public class ChatMessage {
 
     @Id
-    @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @UuidGenerator
     @Column(name = "message_id", length = 36)
     private String id;
 
@@ -49,12 +48,7 @@ public class ChatMessage {
     private boolean isDeleted = false;
 
     public enum MessageType {
-        CHAT,           // 일반 채팅 메시지
-        JOIN,           // 방 참가 알림
-        LEAVE,          // 방 퇴장 알림
-        ROOM_CREATED,   // 방 생성 알림
-        ROOM_UPDATED,   // 방 정보 업데이트
-        SYSTEM          // 시스템 메시지
+        CHAT, JOIN, LEAVE, ROOM_CREATED, ROOM_UPDATED, SYSTEM
     }
 
     // 정적 팩토리 메서드들

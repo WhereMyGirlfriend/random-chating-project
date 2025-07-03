@@ -20,7 +20,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/rooms")
 @RequiredArgsConstructor
-public class GameRoomController {
+public class GameRoomRestController {
 
     private final GameRoomService gameRoomService;
     private final SimpMessagingTemplate messagingTemplate;

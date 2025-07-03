@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectedEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
@@ -34,27 +33,24 @@ public class WebSocketEventListener {
         String username = null;
         String roomId = null;
 
-        // 인증된 사용자 정보 가져오기
-        if (headerAccessor.getUser() instanceof UsernamePasswordAuthenticationToken) {
-            UsernamePasswordAuthenticationToken auth =
-                    (UsernamePasswordAuthenticationToken) headerAccessor.getUser();
-            username = auth.getName();
-        }
-
-        // 세션에서 방 ID 가져오기
+        // 세션에서 사용자 정보 가져오기
         if (headerAccessor.getSessionAttributes() != null) {
+            username = (String) headerAccessor.getSessionAttributes().get("username");
             roomId = (String) headerAccessor.getSessionAttributes().get("roomId");
         }
 
         if (username != null && roomId != null) {
             log.info("사용자 {} 가 방 {} 에서 연결을 해제했습니다", username, roomId);
 
+            // 방에서 사용자 제거
             boolean removed = gameRoomService.leaveRoom(roomId, username);
 
             if (removed) {
+                // 퇴장 메시지 전송
                 ChatMessage leaveMessage = ChatMessage.createLeaveMessage(username, roomId);
                 messagingTemplate.convertAndSend("/topic/room/" + roomId, leaveMessage);
 
+                // 방 목록 업데이트 알림
                 messagingTemplate.convertAndSend("/topic/rooms",
                         ChatMessage.builder()
                                 .type(ChatMessage.MessageType.ROOM_UPDATED)

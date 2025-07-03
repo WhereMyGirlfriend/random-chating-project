@@ -12,15 +12,16 @@
     }
 
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
-      padding: 20px;
+      color: #333;
     }
 
     .container {
       max-width: 1200px;
       margin: 0 auto;
+      padding: 20px;
     }
 
     .header {
@@ -32,6 +33,7 @@
 
     .header h1 {
       font-size: 48px;
+      font-weight: 700;
       margin-bottom: 10px;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     }
@@ -39,24 +41,26 @@
     .header p {
       font-size: 18px;
       opacity: 0.9;
+      font-weight: 300;
     }
 
     .user-info {
       position: absolute;
       top: 0;
       right: 0;
-      background: rgba(255,255,255,0.2);
-      padding: 10px 20px;
-      border-radius: 25px;
+      background: rgba(255,255,255,0.15);
+      padding: 12px 20px;
+      border-radius: 30px;
       backdrop-filter: blur(10px);
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
+      border: 1px solid rgba(255,255,255,0.2);
     }
 
     .user-avatar {
-      width: 35px;
-      height: 35px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       background: linear-gradient(45deg, #4CAF50, #45a049);
       display: flex;
@@ -64,21 +68,30 @@
       justify-content: center;
       color: white;
       font-weight: bold;
+      font-size: 16px;
+    }
+
+    .user-name {
+      font-weight: 500;
+      font-size: 14px;
     }
 
     .logout-btn {
-      background: rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.2);
       color: white;
       border: none;
-      padding: 5px 15px;
-      border-radius: 15px;
+      padding: 6px 12px;
+      border-radius: 20px;
       cursor: pointer;
       font-size: 12px;
-      transition: all 0.3s;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255,255,255,0.3);
     }
 
     .logout-btn:hover {
-      background: rgba(255,255,255,0.5);
+      background: rgba(255,255,255,0.3);
+      transform: translateY(-1px);
     }
 
     .main-content {
@@ -89,10 +102,12 @@
     }
 
     .section-card {
-      background: white;
+      background: rgba(255,255,255,0.95);
       border-radius: 20px;
       padding: 30px;
       box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
       transition: transform 0.3s ease;
     }
 
@@ -102,7 +117,7 @@
 
     .section-title {
       font-size: 24px;
-      font-weight: bold;
+      font-weight: 700;
       color: #333;
       margin-bottom: 20px;
       text-align: center;
@@ -131,42 +146,66 @@
     }
 
     .form-input {
-      padding: 15px;
+      padding: 15px 20px;
       border: 2px solid #e1e5e9;
-      border-radius: 10px;
+      border-radius: 12px;
       font-size: 16px;
-      transition: all 0.3s;
-      background: #fafafa;
+      transition: all 0.3s ease;
+      background: rgba(248,249,250,0.8);
+      font-family: inherit;
     }
 
     .form-input:focus {
       outline: none;
       border-color: #667eea;
       background: white;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+      transform: translateY(-1px);
     }
 
     .create-btn {
-      background: linear-gradient(45deg, #667eea, #764ba2);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       border: none;
-      padding: 15px 20px;
-      border-radius: 10px;
+      padding: 16px 24px;
+      border-radius: 12px;
       font-size: 16px;
-      font-weight: bold;
+      font-weight: 600;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: all 0.3s ease;
+      font-family: inherit;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .create-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .create-btn:hover::before {
+      left: 100%;
     }
 
     .create-btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
     }
 
     .create-btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
       transform: none;
+    }
+
+    .create-btn:disabled::before {
+      display: none;
     }
 
     .room-list-header {
@@ -183,8 +222,9 @@
       padding: 8px 16px;
       border-radius: 20px;
       font-size: 12px;
+      font-weight: 500;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: all 0.3s ease;
       display: flex;
       align-items: center;
       gap: 5px;
@@ -206,36 +246,56 @@
     }
 
     .room-list::-webkit-scrollbar-track {
-      background: #f1f1f1;
+      background: rgba(241,241,241,0.5);
       border-radius: 10px;
     }
 
     .room-list::-webkit-scrollbar-thumb {
-      background: #c1c1c1;
+      background: rgba(193,193,193,0.8);
       border-radius: 10px;
     }
 
+    .room-list::-webkit-scrollbar-thumb:hover {
+      background: rgba(154,154,154,0.8);
+    }
+
     .room-item {
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      background: linear-gradient(135deg, rgba(248,249,250,0.9) 0%, rgba(233,236,239,0.9) 100%);
       border: 2px solid transparent;
-      border-radius: 15px;
+      border-radius: 16px;
       padding: 20px;
       margin-bottom: 15px;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: all 0.3s ease;
       position: relative;
       overflow: hidden;
+    }
+
+    .room-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+      transition: left 0.5s;
+    }
+
+    .room-item:hover::before {
+      left: 100%;
     }
 
     .room-item:hover {
       border-color: #667eea;
       transform: translateY(-3px);
-      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+      background: white;
     }
 
     .room-name {
       font-size: 18px;
-      font-weight: bold;
+      font-weight: 700;
       color: #333;
       margin-bottom: 10px;
       display: flex;
@@ -253,24 +313,26 @@
     .room-creator {
       color: #666;
       font-size: 14px;
+      font-weight: 500;
       display: flex;
       align-items: center;
       gap: 5px;
     }
 
     .room-players {
-      background: linear-gradient(45deg, #667eea, #764ba2);
+      background: linear-gradient(135deg, #667eea, #764ba2);
       color: white;
-      padding: 4px 12px;
-      border-radius: 15px;
+      padding: 6px 12px;
+      border-radius: 20px;
       font-size: 12px;
-      font-weight: bold;
+      font-weight: 600;
     }
 
     .room-time {
       color: #999;
       font-size: 12px;
       text-align: right;
+      font-weight: 400;
     }
 
     .empty-state {
@@ -294,7 +356,7 @@
     }
 
     .spinner {
-      border: 3px solid #f3f3f3;
+      border: 3px solid rgba(102, 126, 234, 0.3);
       border-top: 3px solid #667eea;
       border-radius: 50%;
       width: 30px;
@@ -312,13 +374,15 @@
       position: fixed;
       top: 20px;
       right: 20px;
-      padding: 15px 20px;
-      border-radius: 10px;
+      padding: 16px 24px;
+      border-radius: 12px;
       color: white;
-      font-weight: bold;
+      font-weight: 600;
       z-index: 1001;
       transform: translateX(400px);
-      transition: transform 0.3s;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      backdrop-filter: blur(10px);
     }
 
     .notification.show {
@@ -326,16 +390,39 @@
     }
 
     .notification.success {
-      background: linear-gradient(45deg, #28a745, #20c997);
+      background: linear-gradient(135deg, #28a745, #20c997);
     }
 
     .notification.error {
-      background: linear-gradient(45deg, #dc3545, #fd7e14);
+      background: linear-gradient(135deg, #dc3545, #fd7e14);
+    }
+
+    .stats-bar {
+      background: rgba(255,255,255,0.1);
+      padding: 10px 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      color: white;
+    }
+
+    .stats-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
 
     @media (max-width: 768px) {
+      .container {
+        padding: 15px;
+      }
+
       .main-content {
         grid-template-columns: 1fr;
+        gap: 20px;
       }
 
       .header h1 {
@@ -351,6 +438,22 @@
         margin-bottom: 20px;
         justify-self: center;
       }
+
+      .room-item {
+        padding: 15px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .header h1 {
+        font-size: 28px;
+      }
+
+      .user-info {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+      }
     }
   </style>
 </head>
@@ -359,14 +462,30 @@
   <div class="header">
     <div class="user-info">
       <div class="user-avatar" id="userAvatar">U</div>
-      <span id="currentUser">로딩중...</span>
+      <span class="user-name" id="currentUser">로딩중...</span>
       <button class="logout-btn" onclick="logout()">로그아웃</button>
     </div>
     <h1>🎮 게임 채팅 로비</h1>
     <p>원하는 게임방을 만들거나 참가해보세요!</p>
   </div>
 
+  <div class="stats-bar">
+    <div class="stats-item">
+      <span>🏠</span>
+      <span id="totalRooms">0개 방</span>
+    </div>
+    <div class="stats-item">
+      <span>👥</span>
+      <span id="totalUsers">0명 접속</span>
+    </div>
+    <div class="stats-item">
+      <span>🔄</span>
+      <span>실시간 업데이트</span>
+    </div>
+  </div>
+
   <div class="main-content">
+    <!-- 방 생성 섹션 -->
     <div class="section-card">
       <h2 class="section-title">
         <span>🏗️</span>
@@ -376,8 +495,8 @@
         <div class="form-group">
           <label class="form-label">게임 이름</label>
           <input type="text" id="gameName" class="form-input"
-                 placeholder="예: 리그오브레전드, 오버워치, 발로란트" required
-                 maxlength="50">
+                 placeholder="예: 리그오브레전드, 오버워치, 발로란트"
+                 required maxlength="50">
         </div>
         <button type="submit" class="create-btn" id="createBtn">
           방 생성하기
@@ -385,6 +504,7 @@
       </form>
     </div>
 
+    <!-- 방 목록 섹션 -->
     <div class="section-card">
       <div class="room-list-header">
         <h2 class="section-title">
@@ -413,16 +533,20 @@
   </div>
 </div>
 
+<!-- 알림 -->
 <div id="notification" class="notification"></div>
 
+<!-- JavaScript 라이브러리 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 
 <script>
+  // 전역 변수
   let stompClient = null;
   let currentUsername = null;
   let authToken = null;
 
+  // DOM 요소들
   const createRoomForm = document.getElementById('createRoomForm');
   const createBtn = document.getElementById('createBtn');
   const roomList = document.getElementById('roomList');
@@ -431,11 +555,15 @@
   const notification = document.getElementById('notification');
   const currentUserEl = document.getElementById('currentUser');
   const userAvatar = document.getElementById('userAvatar');
+  const totalRoomsEl = document.getElementById('totalRooms');
+  const totalUsersEl = document.getElementById('totalUsers');
 
+  // 페이지 로드 시 초기화
   document.addEventListener('DOMContentLoaded', function() {
     checkAuthAndInit();
   });
 
+  // 인증 확인 및 초기화
   function checkAuthAndInit() {
     authToken = localStorage.getItem('authToken');
 
@@ -448,9 +576,11 @@
       const payload = JSON.parse(atob(authToken.split('.')[1]));
       currentUsername = payload.sub;
 
+      // UI 업데이트
       currentUserEl.textContent = currentUsername;
       userAvatar.textContent = currentUsername.charAt(0).toUpperCase();
 
+      // 앱 초기화
       initializeApp();
     } catch (error) {
       console.error('토큰 파싱 오류:', error);
@@ -458,17 +588,30 @@
     }
   }
 
+  // 앱 초기화
   function initializeApp() {
     connectWebSocket();
     loadRoomList();
+    loadStatistics();
     setupEventListeners();
   }
 
+  // 이벤트 리스너 설정
   function setupEventListeners() {
     createRoomForm.addEventListener('submit', handleCreateRoom);
-    refreshBtn.addEventListener('click', loadRoomList);
+    refreshBtn.addEventListener('click', () => {
+      loadRoomList();
+      loadStatistics();
+    });
+
+    // 자동 새로고침 (30초마다)
+    setInterval(() => {
+      loadRoomList();
+      loadStatistics();
+    }, 30000);
   }
 
+  // WebSocket 연결
   function connectWebSocket() {
     try {
       const socket = new SockJS('/ws');
@@ -481,9 +624,11 @@
       stompClient.connect(headers, function() {
         console.log('WebSocket 연결됨');
 
+        // 방 목록 업데이트 구독
         stompClient.subscribe('/topic/rooms', function(message) {
           console.log('방 목록 업데이트 알림 받음');
           loadRoomList();
+          loadStatistics();
         });
       }, function(error) {
         console.error('WebSocket 연결 실패:', error);
@@ -495,6 +640,7 @@
     }
   }
 
+  // 방 생성 처리
   async function handleCreateRoom(e) {
     e.preventDefault();
 
@@ -502,6 +648,11 @@
 
     if (!gameName) {
       showNotification('게임 이름을 입력해주세요.', 'error');
+      return;
+    }
+
+    if (gameName.length < 2) {
+      showNotification('게임 이름은 2글자 이상 입력해주세요.', 'error');
       return;
     }
 
@@ -525,6 +676,8 @@
       if (response.ok) {
         showNotification('방이 성공적으로 생성되었습니다!', 'success');
         document.getElementById('gameName').value = '';
+
+        // 1초 후 방으로 이동
         setTimeout(() => {
           window.location.href = `/room/${result.roomId}`;
         }, 1000);
@@ -544,6 +697,7 @@
     }
   }
 
+  // 방 목록 로드
   async function loadRoomList() {
     roomListLoading.style.display = 'block';
 
@@ -570,6 +724,26 @@
     }
   }
 
+  // 통계 정보 로드
+  async function loadStatistics() {
+    try {
+      const response = await fetch('/api/rooms/statistics', {
+        headers: {
+          'Authorization': 'Bearer ' + authToken
+        }
+      });
+
+      if (response.ok) {
+        const stats = await response.json();
+        totalRoomsEl.textContent = `${stats.totalRooms}개 방`;
+        totalUsersEl.textContent = `${stats.totalParticipants}명 접속`;
+      }
+    } catch (error) {
+      console.error('통계 로드 오류:', error);
+    }
+  }
+
+  // 방 목록 렌더링
   function renderRoomList(rooms) {
     if (rooms.length === 0) {
       roomList.innerHTML = `
@@ -605,10 +779,12 @@
     }).join('');
   }
 
+  // 방 참가
   function joinRoom(roomId, gameName) {
     window.location.href = `/room/${roomId}`;
   }
 
+  // 로그아웃
   function logout() {
     localStorage.removeItem('authToken');
     if (stompClient) {
@@ -617,6 +793,7 @@
     window.location.href = '/login';
   }
 
+  // 알림 표시
   function showNotification(message, type = 'success') {
     notification.textContent = message;
     notification.className = `notification ${type}`;
@@ -627,12 +804,14 @@
     }, 3000);
   }
 
+  // HTML 이스케이프
   function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
   }
 
+  // 시간 포맷팅
   function formatTimeAgo(date) {
     const now = new Date();
     const diffMs = now - date;
@@ -643,39 +822,46 @@
     if (diffMins < 1) return '방금 전';
     if (diffMins < 60) return `${diffMins}분 전`;
     if (diffHours < 24) return `${diffHours}시간 전`;
-    function formatTimeAgo(date) {
-      const now = new Date();
-      const diffMs = now - date;
-      const diffMins = Math.floor(diffMs / 60000);
-      const diffHours = Math.floor(diffMins / 60);
-      const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays}일 전`;
 
-      if (diffMins < 1) return '방금 전';
-      if (diffMins < 60) return `${diffMins}분 전`;
-      if (diffHours < 24) return `${diffHours}시간 전`;
-      if (diffDays < 7) return `${diffDays}일 전`;
+    return date.toLocaleDateString('ko-KR', {
+      month: 'short',
+      day: 'numeric'
+    });
+  }
 
-      return date.toLocaleDateString('ko-KR', {
-        month: 'short',
-        day: 'numeric'
-      });
+  // 토큰 유효성 확인
+  function isValidToken(token) {
+    if (!token) return false;
+
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) return false;
+
+      const payload = JSON.parse(atob(parts[1]));
+      const currentTime = Math.floor(Date.now() / 1000);
+
+      return payload.exp > currentTime;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  // 키보드 단축키
+  document.addEventListener('keydown', function(e) {
+    // Ctrl+Enter로 방 생성
+    if (e.ctrlKey && e.key === 'Enter') {
+      e.preventDefault();
+      createRoomForm.dispatchEvent(new Event('submit'));
     }
 
-    function isValidToken(token) {
-      if (!token) return false;
-
-      try {
-        const parts = token.split('.');
-        if (parts.length !== 3) return false;
-
-        const payload = JSON.parse(atob(parts[1]));
-        const currentTime = Math.floor(Date.now() / 1000);
-
-        return payload.exp > currentTime;
-      } catch (error) {
-        return false;
-      }
+    // F5로 새로고침
+    if (e.key === 'F5') {
+      e.preventDefault();
+      loadRoomList();
+      loadStatistics();
     }
+  });
 </script>
 </body>
 </html>
