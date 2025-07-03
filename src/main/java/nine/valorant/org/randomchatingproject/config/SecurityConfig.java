@@ -44,8 +44,8 @@ public class SecurityConfig {
                         // 회원가입 관련 API 허용
                         .requestMatchers("/user/register", "/user/verify").permitAll()
 
-                        // 로그인 페이지 허용
-                        .requestMatchers("/login").permitAll()
+                        // 로그인 페이지와 회원가입 페이지 허용
+                        .requestMatchers("/login", "/register").permitAll()
 
                         // WebSocket 엔드포인트 허용 (별도 인증 처리)
                         .requestMatchers("/ws/**").permitAll()
@@ -68,18 +68,26 @@ public class SecurityConfig {
                 // JWT 필터를 Spring Security 필터 체인에 추가
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
-                // 인증 실패시 /login으로 리다이렉트 설정
+                // 인증 실패시 처리
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, authException) -> {
+                            String requestURI = request.getRequestURI();
+
                             // AJAX 요청인 경우 401 상태 코드 반환
                             if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With")) ||
-                                    request.getHeader("Content-Type") != null && request.getHeader("Content-Type").contains("application/json")) {
+                                    (request.getHeader("Content-Type") != null &&
+                                            request.getHeader("Content-Type").contains("application/json"))) {
                                 response.setStatus(401);
                                 response.setContentType("application/json;charset=UTF-8");
-                                response.getWriter().write("{\"error\":\"인증이 필요합니다.\"}");
+                                response.getWriter().write("{\"error\":\"인증이 필요합니다.\",\"redirectUrl\":\"/login\"}");
                             } else {
-                                // 일반 요청인 경우 로그인 페이지로 리다이렉트
-                                response.sendRedirect("/login");
+                                // 이미 로그인 페이지인 경우 무한 리다이렉트 방지
+                                if (!requestURI.equals("/login")) {
+                                    response.sendRedirect("/login");
+                                } else {
+                                    response.setStatus(401);
+                                    response.getWriter().write("Unauthorized");
+                                }
                             }
                         })
                 );

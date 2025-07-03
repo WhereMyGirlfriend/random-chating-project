@@ -196,41 +196,39 @@
     </form>
 
     <div class="register-link">
-        <p>계정이 없으신가요? <a href="/register">회원가입</a></p>
+        <p>계정이 없으신가요? <a href="/user/register">회원가입</a></p>
     </div>
 </div>
 
 <script>
-    // DOM 요소들
     const loginForm = document.getElementById('loginForm');
     const loginBtn = document.getElementById('loginBtn');
     const loading = document.getElementById('loading');
     const errorMessage = document.getElementById('errorMessage');
     const successMessage = document.getElementById('successMessage');
 
-    // 페이지 로드 시 토큰 확인
+    // 페이지 로드 시 토큰 확인 (임시 비활성화)
     document.addEventListener('DOMContentLoaded', function() {
+        // 자동 리다이렉트 비활성화 (테스트용)
+        /*
         const token = localStorage.getItem('authToken');
         if (token && isValidToken(token)) {
-            // 이미 로그인된 경우 메인 페이지로 리다이렉트
-            window.location.href = '/';
+            window.location.href = '/home';
         }
+        */
     });
 
-    // 로그인 폼 제출 처리
     loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
 
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value.trim();
 
-        // 입력 검증
         if (!username || !password) {
             showError('사용자명과 비밀번호를 모두 입력해주세요.');
             return;
         }
 
-        // UI 상태 변경
         setLoading(true);
         hideMessages();
 
@@ -247,17 +245,13 @@
             });
 
             if (response.ok) {
-                const token = await response.text(); // 서버에서 토큰을 텍스트로 반환
-
-                // 토큰을 localStorage에 저장
+                const token = await response.text();
                 localStorage.setItem('authToken', token);
 
                 showSuccess('로그인 성공! 페이지를 이동합니다...');
 
-                // 1초 후 메인 페이지로 이동
-                setTimeout(() => {
-                    window.location.href = '/';
-                }, 1000);
+                // 즉시 이동 (setTimeout 제거)
+                window.location.href = '/home';
 
             } else {
                 const errorText = await response.text();
@@ -271,55 +265,44 @@
         }
     });
 
-    // 로딩 상태 설정
     function setLoading(isLoading) {
         if (isLoading) {
             loginBtn.style.display = 'none';
             loading.style.display = 'flex';
-
-            // 입력 필드 비활성화
             document.getElementById('username').disabled = true;
             document.getElementById('password').disabled = true;
         } else {
             loginBtn.style.display = 'block';
             loading.style.display = 'none';
-
-            // 입력 필드 활성화
             document.getElementById('username').disabled = false;
             document.getElementById('password').disabled = false;
         }
     }
 
-    // 에러 메시지 표시
     function showError(message) {
         errorMessage.textContent = message;
         errorMessage.style.display = 'block';
         successMessage.style.display = 'none';
     }
 
-    // 성공 메시지 표시
     function showSuccess(message) {
         successMessage.textContent = message;
         successMessage.style.display = 'block';
         errorMessage.style.display = 'none';
     }
 
-    // 메시지 숨기기
     function hideMessages() {
         errorMessage.style.display = 'none';
         successMessage.style.display = 'none';
     }
 
-    // 토큰 유효성 간단 체크 (실제로는 서버에서 검증해야 함)
     function isValidToken(token) {
         if (!token) return false;
 
         try {
-            // JWT 토큰의 기본 구조 확인 (header.payload.signature)
             const parts = token.split('.');
             if (parts.length !== 3) return false;
 
-            // payload 디코딩하여 만료시간 확인
             const payload = JSON.parse(atob(parts[1]));
             const currentTime = Math.floor(Date.now() / 1000);
 
@@ -329,7 +312,6 @@
         }
     }
 
-    // Enter 키 처리
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && !loginBtn.disabled) {
             loginForm.dispatchEvent(new Event('submit'));

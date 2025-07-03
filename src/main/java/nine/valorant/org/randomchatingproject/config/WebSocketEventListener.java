@@ -33,7 +33,7 @@ public class WebSocketEventListener {
         String username = null;
         String roomId = null;
 
-        // 세션에서 사용자 정보 가져오기
+        // 세션에서 사용자 정보 가져오기 (인증 방식 변경)
         if (headerAccessor.getSessionAttributes() != null) {
             username = (String) headerAccessor.getSessionAttributes().get("username");
             roomId = (String) headerAccessor.getSessionAttributes().get("roomId");
