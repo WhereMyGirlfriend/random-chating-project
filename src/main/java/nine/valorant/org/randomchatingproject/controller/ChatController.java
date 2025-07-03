@@ -24,7 +24,7 @@ public class ChatController {
     private final SimpMessagingTemplate messagingTemplate;
 
     /**
-     * 채팅 메시지 전송 (인증 체크 임시 제거)
+     * 채팅 메시지 전송 (테스트용: 인증 체크 제거)
      */
     @MessageMapping("/chat.sendMessage/{roomId}")
     @SendTo("/topic/room/{roomId}")
@@ -42,6 +42,11 @@ public class ChatController {
         chatMessage.setRoomId(roomId);
         chatMessage.setType(ChatMessage.MessageType.CHAT);
 
+        // 테스트용: sender가 null인 경우 기본값 설정
+        if (chatMessage.getSender() == null || chatMessage.getSender().trim().isEmpty()) {
+            chatMessage.setSender("TestUser");
+        }
+
         // 메시지 저장
         gameRoomService.saveChatMessage(chatMessage);
 
@@ -51,14 +56,18 @@ public class ChatController {
     }
 
     /**
-     * 사용자 방 참가 처리 (인증 체크 임시 제거)
+     * 사용자 방 참가 처리 (테스트용: 인증 체크 제거)
      */
     @MessageMapping("/chat.addUser/{roomId}")
     public void addUser(@DestinationVariable String roomId,
                         @Payload ChatMessage chatMessage,
                         SimpMessageHeaderAccessor headerAccessor) {
 
+        // 테스트용: sender가 null인 경우 기본값 설정
         String username = chatMessage.getSender();
+        if (username == null || username.trim().isEmpty()) {
+            username = "TestUser";
+        }
 
         // 세션에 사용자 정보 저장
         headerAccessor.getSessionAttributes().put("username", username);

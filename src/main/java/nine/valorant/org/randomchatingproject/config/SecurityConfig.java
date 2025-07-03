@@ -35,21 +35,26 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
-                        // 정적 리소스 허용
-                        .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico", "/error").permitAll()
+                                // 정적 리소스 허용
+                                .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico", "/error").permitAll()
 
-                        // 인증 관련 API 허용
-                        .requestMatchers("/auth/login", "/auth/logout").permitAll()
+                                // 인증 관련 API 허용
+                                .requestMatchers("/auth/login", "/auth/logout").permitAll()
 
-                        // 회원가입 관련 API 허용
-                        .requestMatchers("/user/register", "/user/verify").permitAll()
+                                // 회원가입 관련 API 허용
+                                .requestMatchers("/user/register", "/user/verify").permitAll()
 
-                        // 로그인 페이지와 회원가입 페이지 허용
-                        .requestMatchers("/login", "/register").permitAll()
+                                // 로그인 페이지와 회원가입 페이지 허용
+                                .requestMatchers("/login", "/register").permitAll()
 
-                        // WebSocket 엔드포인트 허용 (별도 인증 처리)
-                        .requestMatchers("/ws/**").permitAll()
+                                // WebSocket 엔드포인트 허용 (별도 인증 처리)
+                                .requestMatchers("/ws/**").permitAll()
 
+                                // ===== 테스트용: 모든 요청 허용 =====
+                                .anyRequest().permitAll()
+
+                        // ===== 원래 설정 (테스트 후 이것으로 변경) =====
+                        /*
                         // 메인 페이지는 로그인 후 접근 가능
                         .requestMatchers("/", "/home").authenticated()
 
@@ -64,7 +69,13 @@ public class SecurityConfig {
 
                         // 기타 모든 요청은 인증 필요
                         .anyRequest().authenticated()
-                )
+                        */
+                );
+        // ===== 테스트용: JWT 필터 비활성화 =====
+        // .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+
+        // ===== 원래 설정 (테스트 후 이것으로 변경) =====
+                /*
                 // JWT 필터를 Spring Security 필터 체인에 추가
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
@@ -91,6 +102,7 @@ public class SecurityConfig {
                             }
                         })
                 );
+                */
 
         return http.build();
     }
