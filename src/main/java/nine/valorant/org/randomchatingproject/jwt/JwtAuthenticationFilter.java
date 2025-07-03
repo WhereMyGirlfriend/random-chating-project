@@ -2,6 +2,7 @@ package nine.valorant.org.randomchatingproject.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +17,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
 
 @Slf4j
 @Component
@@ -44,20 +44,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        String authorization = request.getHeader("Authorization");
-
         log.info("=== JWT 필터 시작 ===");
         log.info("요청 URI: {}", requestURI);
-        log.info("Authorization 헤더: {}", authorization != null ? authorization.substring(0, Math.min(30, authorization.length())) + "..." : "없음");
 
-        if (authorization == null || !authorization.startsWith("Bearer ")) {
-            log.info("Authorization 헤더 없음 또는 Bearer 형식 아님 - 필터 통과");
+        // 쿠키에서 토큰 확인
+        String token = extractTokenFromCookies(request);
+
+        if (token == null) {
+            log.info("쿠키에 토큰 없음 - 필터 통과");
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = authorization.split(" ")[1];
-        log.info("추출된 토큰 길이: {}", token.length());
+        log.info("쿠키에서 토큰 추출됨, 길이: {}", token.length());
 
         try {
             if (!jwtProvider.validateToken(token)) {
@@ -81,7 +80,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             log.info("Spring Security 인증 설정 완료! 사용자: {}", username);
-            log.info("현재 인증 상태: {}", SecurityContextHolder.getContext().getAuthentication() != null ? "인증됨" : "인증안됨");
 
         } catch (Exception e) {
             log.error("JWT 인증 처리 중 오류 발생: {}", e.getMessage(), e);
@@ -92,18 +90,57 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private static final List<String> JWT_REQUIRED_PREFIXES = List.of(
-            "/home",
-            "/room"
-    );
-
-    private boolean shouldSkipJwtFilter(String requestURI) {
-
-        for (String prefix : JWT_REQUIRED_PREFIXES) {
-            if (requestURI.startsWith(prefix)) {
-                return false; // 필터 적용
+    /**
+     * 쿠키에서 JWT 토큰 추출
+     */
+    private String extractTokenFromCookies(HttpServletRequest request) {
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("authToken".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
             }
         }
-        return true;
+        return null;
+    }
+
+    /**
+     * JWT 필터를 건너뛸 경로인지 확인
+     */
+    private boolean shouldSkipJwtFilter(String requestURI) {
+        // 정적 리소스
+        if (requestURI.startsWith("/css/") || requestURI.startsWith("/js/") ||
+                requestURI.startsWith("/images/") || requestURI.equals("/favicon.ico") ||
+                requestURI.equals("/error")) {
+            return true;
+        }
+
+        // 브라우저 자동 요청
+        if (requestURI.startsWith("/.well-known/") || requestURI.equals("/robots.txt") ||
+                requestURI.equals("/sitemap.xml") || requestURI.contains("/appspecific/")) {
+            return true;
+        }
+
+        // 인증 관련 API
+        if (requestURI.startsWith("/auth/")) {
+            return true;
+        }
+
+        // 회원가입 관련
+        if (requestURI.startsWith("/user/register") || requestURI.startsWith("/user/verify")) {
+            return true;
+        }
+
+        // 페이지 접근
+        if (requestURI.equals("/login") || requestURI.equals("/register")) {
+            return true;
+        }
+
+        // WebSocket
+        if (requestURI.startsWith("/ws/")) {
+            return true;
+        }
+
+        return false;
     }
 }

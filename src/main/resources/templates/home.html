@@ -462,7 +462,7 @@
   <div class="header">
     <div class="user-info">
       <div class="user-avatar" id="userAvatar">U</div>
-      <span class="user-name" id="currentUser">로딩중...</span>
+      <span class="user-name" id="currentUser">[[${username}]]</span>
       <button class="logout-btn" onclick="logout()">로그아웃</button>
     </div>
     <h1>🎮 게임 채팅 로비</h1>
@@ -543,8 +543,7 @@
 <script>
   // 전역 변수
   let stompClient = null;
-  let currentUsername = null;
-  let authToken = null;
+  let currentUsername = '[[${username}]]'; // 서버에서 전달받은 사용자명
 
   // DOM 요소들
   const createRoomForm = document.getElementById('createRoomForm');
@@ -553,51 +552,22 @@
   const roomListLoading = document.getElementById('roomListLoading');
   const refreshBtn = document.getElementById('refreshBtn');
   const notification = document.getElementById('notification');
-  const currentUserEl = document.getElementById('currentUser');
   const userAvatar = document.getElementById('userAvatar');
   const totalRoomsEl = document.getElementById('totalRooms');
   const totalUsersEl = document.getElementById('totalUsers');
 
   // 페이지 로드 시 초기화
   document.addEventListener('DOMContentLoaded', function() {
-    checkAuthAndInit();
-  });
+    console.log('홈 페이지 로드됨, 사용자:', currentUsername);
 
-  // 인증 확인 및 초기화 (임시 비활성화)
-  function checkAuthAndInit() {
-    // 임시로 인증 체크 비활성화
-    /*
-    authToken = localStorage.getItem('authToken');
-
-    if (!authToken || !isValidToken(authToken)) {
-        window.location.href = '/login';
-        return;
+    // 사용자 아바타 설정
+    if (currentUsername) {
+      userAvatar.textContent = currentUsername.charAt(0).toUpperCase();
     }
-
-    try {
-        const payload = JSON.parse(atob(authToken.split('.')[1]));
-        currentUsername = payload.sub;
-
-        // UI 업데이트
-        currentUserEl.textContent = currentUsername;
-        userAvatar.textContent = currentUsername.charAt(0).toUpperCase();
-
-        // 앱 초기화
-        initializeApp();
-    } catch (error) {
-        console.error('토큰 파싱 오류:', error);
-        logout();
-    }
-    */
-
-    // 테스트용 임시 사용자명
-    currentUsername = 'TestUser';
-    currentUserEl.textContent = currentUsername;
-    userAvatar.textContent = currentUsername.charAt(0).toUpperCase();
 
     // 앱 초기화
     initializeApp();
-  }
+  });
 
   // 앱 초기화
   function initializeApp() {
@@ -622,14 +592,22 @@
     }, 30000);
   }
 
-  // WebSocket 연결 (인증 없이)
+  // WebSocket 연결 (Authorization 헤더 사용)
   function connectWebSocket() {
     try {
       const socket = new SockJS('/ws');
       stompClient = Stomp.over(socket);
 
-      // 인증 헤더 제거
-      stompClient.connect({}, function() {
+      // WebSocket 연결시에만 Authorization 헤더 사용
+      const token = localStorage.getItem('authToken');
+      const headers = {};
+
+      if (token) {
+        headers['Authorization'] = 'Bearer ' + token;
+        console.log('WebSocket에 Authorization 헤더 추가');
+      }
+
+      stompClient.connect(headers, function() {
         console.log('WebSocket 연결됨');
 
         // 방 목록 업데이트 구독
@@ -648,7 +626,7 @@
     }
   }
 
-  // 방 생성 처리
+  // 방 생성 처리 (쿠키로 자동 인증)
   async function handleCreateRoom(e) {
     e.preventDefault();
 
@@ -668,12 +646,13 @@
     createBtn.textContent = '생성 중...';
 
     try {
+      // 쿠키로 자동 인증됨 - Authorization 헤더 불필요
       const response = await fetch('/api/rooms/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
-          // Authorization 헤더 제거
         },
+        credentials: 'include', // 쿠키 포함
         body: JSON.stringify({
           gameName: gameName
         })
@@ -705,15 +684,14 @@
     }
   }
 
-  // 방 목록 로드
+  // 방 목록 로드 (쿠키로 자동 인증)
   async function loadRoomList() {
     roomListLoading.style.display = 'block';
 
     try {
+      // 쿠키로 자동 인증됨 - Authorization 헤더 불필요
       const response = await fetch('/api/rooms/list', {
-        headers: {
-          // Authorization 헤더 제거
-        }
+        credentials: 'include' // 쿠키 포함
       });
 
       if (response.status === 401) {
@@ -732,13 +710,11 @@
     }
   }
 
-  // 통계 정보 로드
+  // 통계 정보 로드 (쿠키로 자동 인증)
   async function loadStatistics() {
     try {
       const response = await fetch('/api/rooms/statistics', {
-        headers: {
-          'Authorization': 'Bearer ' + authToken
-        }
+        credentials: 'include' // 쿠키 포함
       });
 
       if (response.ok) {
@@ -755,12 +731,12 @@
   function renderRoomList(rooms) {
     if (rooms.length === 0) {
       roomList.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🏠</div>
-                        아직 생성된 방이 없습니다.<br>
-                        첫 번째 방을 만들어보세요!
-                    </div>
-                `;
+        <div class="empty-state">
+          <div class="empty-state-icon">🏠</div>
+          아직 생성된 방이 없습니다.<br>
+          첫 번째 방을 만들어보세요!
+        </div>
+      `;
       return;
     }
 
@@ -769,21 +745,21 @@
       const timeString = formatTimeAgo(createdTime);
 
       return `
-                    <div class="room-item" onclick="joinRoom('${room.roomId}', '${escapeHtml(room.gameName)}')">
-                        <div class="room-name">
-                            <span>🎮</span>
-                            ${escapeHtml(room.gameName)}
-                        </div>
-                        <div class="room-info">
-                            <span class="room-creator">
-                                <span>👤</span>
-                                ${escapeHtml(room.creator)}
-                            </span>
-                            <span class="room-players">${room.currentPlayers}/${room.maxPlayers}명</span>
-                        </div>
-                        <div class="room-time">${timeString}</div>
-                    </div>
-                `;
+        <div class="room-item" onclick="joinRoom('${room.roomId}', '${escapeHtml(room.gameName)}')">
+          <div class="room-name">
+            <span>🎮</span>
+            ${escapeHtml(room.gameName)}
+          </div>
+          <div class="room-info">
+            <span class="room-creator">
+              <span>👤</span>
+              ${escapeHtml(room.creator)}
+            </span>
+            <span class="room-players">${room.currentPlayers}/${room.maxPlayers}명</span>
+          </div>
+          <div class="room-time">${timeString}</div>
+        </div>
+      `;
     }).join('');
   }
 
@@ -794,7 +770,12 @@
 
   // 로그아웃
   function logout() {
+    // 쿠키와 localStorage 모두 삭제
     localStorage.removeItem('authToken');
+
+    // 쿠키 삭제
+    document.cookie = 'authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+
     if (stompClient) {
       stompClient.disconnect();
     }
@@ -836,23 +817,6 @@
       month: 'short',
       day: 'numeric'
     });
-  }
-
-  // 토큰 유효성 확인
-  function isValidToken(token) {
-    if (!token) return false;
-
-    try {
-      const parts = token.split('.');
-      if (parts.length !== 3) return false;
-
-      const payload = JSON.parse(atob(parts[1]));
-      const currentTime = Math.floor(Date.now() / 1000);
-
-      return payload.exp > currentTime;
-    } catch (error) {
-      return false;
-    }
   }
 
   // 키보드 단축키

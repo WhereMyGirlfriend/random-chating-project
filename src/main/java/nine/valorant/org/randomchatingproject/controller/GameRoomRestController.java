@@ -26,26 +26,18 @@ public class GameRoomRestController {
     private final SimpMessagingTemplate messagingTemplate;
 
     /**
-     * 새 게임방 생성 (테스트용: 인증 체크 비활성화)
+     * 새 게임방 생성 (인증 필요)
      */
     @PostMapping("/create")
     public ResponseEntity<?> createRoom(@RequestBody CreateRoomRequest request,
                                         @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            // 테스트용: 기본 사용자명 설정
-            String username = "TestUser";
-            if (userDetails != null) {
-                username = userDetails.getUsername();
-            }
-
-            /*
-            // 원래 코드 (나중에 복원)
             if (userDetails == null) {
                 return ResponseEntity.status(401)
                         .body(Map.of("error", "로그인이 필요합니다."));
             }
+
             String username = userDetails.getUsername();
-            */
 
             if (request.getGameName() == null || request.getGameName().trim().isEmpty()) {
                 return ResponseEntity.badRequest()
@@ -83,25 +75,37 @@ public class GameRoomRestController {
     }
 
     /**
-     * 활성 방 목록 조회 (테스트용: 인증 불필요)
+     * 활성 방 목록 조회 (인증 필요)
      */
     @GetMapping("/list")
-    public ResponseEntity<List<GameRoom>> getRoomList() {
+    public ResponseEntity<?> getRoomList(@AuthenticationPrincipal UserDetails userDetails) {
         try {
+            if (userDetails == null) {
+                return ResponseEntity.status(401)
+                        .body(Map.of("error", "로그인이 필요합니다."));
+            }
+
             List<GameRoom> rooms = gameRoomService.getAllActiveRooms();
             return ResponseEntity.ok(rooms);
         } catch (Exception e) {
             log.error("방 목록 조회 중 오류 발생", e);
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", "방 목록 조회 중 오류가 발생했습니다."));
         }
     }
 
     /**
-     * 특정 방 상세 조회 (테스트용: 인증 불필요)
+     * 특정 방 상세 조회 (인증 필요)
      */
     @GetMapping("/{roomId}")
-    public ResponseEntity<?> getRoom(@PathVariable String roomId) {
+    public ResponseEntity<?> getRoom(@PathVariable String roomId,
+                                     @AuthenticationPrincipal UserDetails userDetails) {
         try {
+            if (userDetails == null) {
+                return ResponseEntity.status(401)
+                        .body(Map.of("error", "로그인이 필요합니다."));
+            }
+
             Optional<GameRoom> room = gameRoomService.getRoom(roomId);
 
             if (room.isEmpty()) {
@@ -111,59 +115,46 @@ public class GameRoomRestController {
             return ResponseEntity.ok(room.get());
         } catch (Exception e) {
             log.error("방 조회 중 오류 발생: {}", roomId, e);
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", "방 조회 중 오류가 발생했습니다."));
         }
     }
 
     /**
-     * 내가 참가한 방 목록 조회 (테스트용: 인증 체크 비활성화)
+     * 내가 참가한 방 목록 조회 (인증 필요)
      */
     @GetMapping("/my-rooms")
-    public ResponseEntity<List<GameRoom>> getMyRooms(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<?> getMyRooms(@AuthenticationPrincipal UserDetails userDetails) {
         try {
-            // 테스트용: 기본 사용자명 설정
-            String username = "TestUser";
-            if (userDetails != null) {
-                username = userDetails.getUsername();
+            if (userDetails == null) {
+                return ResponseEntity.status(401)
+                        .body(Map.of("error", "로그인이 필요합니다."));
             }
 
-            /*
-            // 원래 코드 (나중에 복원)
-            if (userDetails == null) {
-                return ResponseEntity.status(401).build();
-            }
             String username = userDetails.getUsername();
-            */
 
             List<GameRoom> myRooms = gameRoomService.getUserActiveRooms(username);
             return ResponseEntity.ok(myRooms);
         } catch (Exception e) {
             log.error("내 방 목록 조회 중 오류 발생", e);
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", "내 방 목록 조회 중 오류가 발생했습니다."));
         }
     }
 
     /**
-     * 방 삭제 (테스트용: 인증 체크 비활성화)
+     * 방 삭제 (인증 필요)
      */
     @DeleteMapping("/{roomId}")
     public ResponseEntity<?> deleteRoom(@PathVariable String roomId,
                                         @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            // 테스트용: 기본 사용자명 설정
-            String username = "TestUser";
-            if (userDetails != null) {
-                username = userDetails.getUsername();
-            }
-
-            /*
-            // 원래 코드 (나중에 복원)
             if (userDetails == null) {
                 return ResponseEntity.status(401)
                         .body(Map.of("error", "로그인이 필요합니다."));
             }
+
             String username = userDetails.getUsername();
-            */
 
             boolean deleted = gameRoomService.deleteRoom(roomId, username);
 
@@ -188,16 +179,22 @@ public class GameRoomRestController {
     }
 
     /**
-     * 방 통계 조회 (테스트용: 인증 불필요)
+     * 방 통계 조회 (인증 필요)
      */
     @GetMapping("/statistics")
-    public ResponseEntity<Map<String, Object>> getRoomStatistics() {
+    public ResponseEntity<?> getRoomStatistics(@AuthenticationPrincipal UserDetails userDetails) {
         try {
+            if (userDetails == null) {
+                return ResponseEntity.status(401)
+                        .body(Map.of("error", "로그인이 필요합니다."));
+            }
+
             Map<String, Object> stats = gameRoomService.getRoomStatistics();
             return ResponseEntity.ok(stats);
         } catch (Exception e) {
             log.error("통계 조회 중 오류 발생", e);
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", "통계 조회 중 오류가 발생했습니다."));
         }
     }
 

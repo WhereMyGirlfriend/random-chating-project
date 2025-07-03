@@ -11,6 +11,8 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 
 import java.util.Optional;
@@ -24,12 +26,22 @@ public class ChatController {
     private final SimpMessagingTemplate messagingTemplate;
 
     /**
-     * 채팅 메시지 전송 (테스트용: 인증 체크 제거)
+     * 채팅 메시지 전송 (인증 필요)
      */
     @MessageMapping("/chat.sendMessage/{roomId}")
     @SendTo("/topic/room/{roomId}")
     public ChatMessage sendMessage(@DestinationVariable String roomId,
-                                   @Payload ChatMessage chatMessage) {
+                                   @Payload ChatMessage chatMessage,
+                                   @AuthenticationPrincipal UserDetails userDetails) {
+
+        // 인증된 사용자 확인
+        if (userDetails == null) {
+            log.warn("비인증 사용자가 메시지 전송 시도 - 방: {}", roomId);
+            return null;
+        }
+
+        String username = userDetails.getUsername();
+        log.info("인증된 사용자 {} 가 메시지 전송 시도 - 방: {}", username, roomId);
 
         // 방이 존재하는지 확인
         Optional<GameRoom> room = gameRoomService.getRoom(roomId);
@@ -41,33 +53,33 @@ public class ChatController {
         // 메시지 설정
         chatMessage.setRoomId(roomId);
         chatMessage.setType(ChatMessage.MessageType.CHAT);
-
-        // 테스트용: sender가 null인 경우 기본값 설정
-        if (chatMessage.getSender() == null || chatMessage.getSender().trim().isEmpty()) {
-            chatMessage.setSender("TestUser");
-        }
+        chatMessage.setSender(username); // 실제 인증된 사용자명 사용
 
         // 메시지 저장
         gameRoomService.saveChatMessage(chatMessage);
 
-        log.info("방 {} 에서 {} 가 메시지 전송: {}", roomId, chatMessage.getSender(), chatMessage.getContent());
+        log.info("방 {} 에서 {} 가 메시지 전송: {}", roomId, username, chatMessage.getContent());
 
         return chatMessage;
     }
 
     /**
-     * 사용자 방 참가 처리 (테스트용: 인증 체크 제거)
+     * 사용자 방 참가 처리 (인증 필요)
      */
     @MessageMapping("/chat.addUser/{roomId}")
     public void addUser(@DestinationVariable String roomId,
                         @Payload ChatMessage chatMessage,
-                        SimpMessageHeaderAccessor headerAccessor) {
+                        SimpMessageHeaderAccessor headerAccessor,
+                        @AuthenticationPrincipal UserDetails userDetails) {
 
-        // 테스트용: sender가 null인 경우 기본값 설정
-        String username = chatMessage.getSender();
-        if (username == null || username.trim().isEmpty()) {
-            username = "TestUser";
+        // 인증된 사용자 확인
+        if (userDetails == null) {
+            log.warn("비인증 사용자가 방 참가 시도 - 방: {}", roomId);
+            return;
         }
+
+        String username = userDetails.getUsername();
+        log.info("인증된 사용자 {} 가 방 {} 참가 시도", username, roomId);
 
         // 세션에 사용자 정보 저장
         headerAccessor.getSessionAttributes().put("username", username);

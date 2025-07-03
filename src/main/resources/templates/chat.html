@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>게임 채팅방</title>
     <style>
+        /* 기존 CSS와 동일하므로 생략... */
         * {
             margin: 0;
             padding: 0;
@@ -361,11 +362,30 @@
         checkAuth();
     });
 
-    // 인증 확인 (테스트용 수정)
+    // 인증 확인 (실제 JWT 토큰 사용)
     function checkAuth() {
-        // 테스트용: 기본 사용자명 설정
-        currentUsername = 'TestUser';
-        authToken = 'test-token';
+        authToken = localStorage.getItem('authToken');
+
+        if (!authToken || !isValidToken(authToken)) {
+            showError('로그인이 필요합니다. 로그인 페이지로 이동합니다.');
+            setTimeout(() => {
+                window.location.href = '/login';
+            }, 2000);
+            return;
+        }
+
+        try {
+            const payload = JSON.parse(atob(authToken.split('.')[1]));
+            currentUsername = payload.sub;
+            console.log('인증 성공:', currentUsername);
+        } catch (error) {
+            console.error('토큰 파싱 오류:', error);
+            showError('인증 정보가 잘못되었습니다. 다시 로그인해주세요.');
+            setTimeout(() => {
+                window.location.href = '/login';
+            }, 2000);
+            return;
+        }
 
         if (!roomId) {
             showError('잘못된 접근입니다. 로비로 이동합니다.');
@@ -383,7 +403,19 @@
     // 방 정보 로드
     async function loadRoomData() {
         try {
-            const response = await fetch(`/api/rooms/${roomId}`);
+            const response = await fetch(`/api/rooms/${roomId}`, {
+                headers: {
+                    'Authorization': 'Bearer ' + authToken
+                }
+            });
+
+            if (response.status === 401) {
+                showError('인증이 만료되었습니다. 다시 로그인해주세요.');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 2000);
+                return;
+            }
 
             if (response.ok) {
                 roomData = await response.json();
@@ -419,23 +451,28 @@
             const initial = participant.charAt(0).toUpperCase();
 
             return `
-                    <div class="participant-item">
-                        <div class="participant-avatar">${initial}</div>
-                        <div>
-                            <div class="participant-name">${escapeHtml(participant)} ${isMe ? '(나)' : ''}</div>
-                            ${isCreator ? '<span class="creator-badge">방장</span>' : ''}
-                        </div>
+                <div class="participant-item">
+                    <div class="participant-avatar">${initial}</div>
+                    <div>
+                        <div class="participant-name">${escapeHtml(participant)} ${isMe ? '(나)' : ''}</div>
+                        ${isCreator ? '<span class="creator-badge">방장</span>' : ''}
                     </div>
-                `;
+                </div>
+            `;
         }).join('');
     }
 
-    // WebSocket 연결 (테스트용 수정)
+    // WebSocket 연결 (실제 JWT 토큰 사용)
     function connectWebSocket() {
         const socket = new SockJS('/ws');
         stompClient = Stomp.over(socket);
 
-        stompClient.connect({}, function() {
+        // JWT 토큰을 헤더에 추가
+        const headers = {
+            'Authorization': 'Bearer ' + authToken
+        };
+
+        stompClient.connect(headers, function() {
             console.log('WebSocket 연결 성공');
 
             // 방별 메시지 구독
@@ -444,7 +481,7 @@
                 addMessage(chatMessage);
             });
 
-            // 방에 입장 알림 (sender 정보 포함)
+            // 방에 입장 알림 (실제 인증된 사용자명 사용)
             stompClient.send(`/app/chat.addUser/${roomId}`, {}, JSON.stringify({
                 sender: currentUsername,
                 type: 'JOIN',
@@ -492,7 +529,7 @@
         if (content && stompClient && !isComposing) {
             const message = {
                 content: content,
-                sender: currentUsername,
+                sender: currentUsername, // 실제 인증된 사용자명 사용
                 type: 'CHAT',
                 roomId: roomId
             };
@@ -514,39 +551,39 @@
         if (message.type === 'JOIN') {
             messageElement.classList.add('system');
             messageElement.innerHTML = `
-                    <div class="message-bubble">
-                        <div class="message-content">${escapeHtml(message.sender)}님이 참가했습니다! 🎉</div>
-                    </div>
-                `;
+                <div class="message-bubble">
+                    <div class="message-content">${escapeHtml(message.sender)}님이 참가했습니다! 🎉</div>
+                </div>
+            `;
             // 방 정보 새로고침
             loadRoomData();
         } else if (message.type === 'LEAVE') {
             messageElement.classList.add('system');
             messageElement.innerHTML = `
-                    <div class="message-bubble">
-                        <div class="message-content">${escapeHtml(message.sender)}님이 나갔습니다. 👋</div>
-                    </div>
-                `;
+                <div class="message-bubble">
+                    <div class="message-content">${escapeHtml(message.sender)}님이 나갔습니다. 👋</div>
+                </div>
+            `;
             // 방 정보 새로고침
             loadRoomData();
         } else {
             if (message.sender === currentUsername) {
                 messageElement.classList.add('own');
                 messageElement.innerHTML = `
-                        <div class="message-bubble">
-                            <div class="message-content">${escapeHtml(message.content)}</div>
-                            <div class="message-time">${timeString}</div>
-                        </div>
-                    `;
+                    <div class="message-bubble">
+                        <div class="message-content">${escapeHtml(message.content)}</div>
+                        <div class="message-time">${timeString}</div>
+                    </div>
+                `;
             } else {
                 messageElement.classList.add('other');
                 messageElement.innerHTML = `
-                        <div class="message-sender">${escapeHtml(message.sender)}</div>
-                        <div class="message-bubble">
-                            <div class="message-content">${escapeHtml(message.content)}</div>
-                            <div class="message-time">${timeString}</div>
-                        </div>
-                    `;
+                    <div class="message-sender">${escapeHtml(message.sender)}</div>
+                    <div class="message-bubble">
+                        <div class="message-content">${escapeHtml(message.content)}</div>
+                        <div class="message-time">${timeString}</div>
+                    </div>
+                `;
             }
         }
 
@@ -557,8 +594,8 @@
     // 에러 표시
     function showError(message) {
         connectionStatus.innerHTML = `
-                <div class="error">${message}</div>
-            `;
+            <div class="error">${message}</div>
+        `;
     }
 
     // 로비로 이동
@@ -571,6 +608,23 @@
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    // 토큰 유효성 확인
+    function isValidToken(token) {
+        if (!token) return false;
+
+        try {
+            const parts = token.split('.');
+            if (parts.length !== 3) return false;
+
+            const payload = JSON.parse(atob(parts[1]));
+            const currentTime = Math.floor(Date.now() / 1000);
+
+            return payload.exp > currentTime;
+        } catch (error) {
+            return false;
+        }
     }
 
     // 페이지 종료 시 WebSocket 해제

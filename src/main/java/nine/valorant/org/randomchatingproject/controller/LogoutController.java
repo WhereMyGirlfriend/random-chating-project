@@ -2,8 +2,9 @@ package nine.valorant.org.randomchatingproject.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,12 +23,12 @@ public class LogoutController {
      * 클라이언트에서 토큰을 삭제하도록 안내
      */
     @PostMapping("/logout")
-    public ResponseEntity<Map<String, Object>> logout(Authentication authentication) {
+    public ResponseEntity<Map<String, Object>> logout(@AuthenticationPrincipal UserDetails userDetails) {
         Map<String, Object> response = new HashMap<>();
 
         try {
-            if (authentication != null && authentication.isAuthenticated()) {
-                String username = authentication.getName();
+            if (userDetails != null) {
+                String username = userDetails.getUsername();
                 log.info("사용자 {} 가 로그아웃했습니다", username);
 
                 // SecurityContext 클리어
@@ -60,15 +61,12 @@ public class LogoutController {
      * 로그아웃 상태 확인
      */
     @PostMapping("/logout-status")
-    public ResponseEntity<Map<String, Object>> checkLogoutStatus() {
+    public ResponseEntity<Map<String, Object>> checkLogoutStatus(@AuthenticationPrincipal UserDetails userDetails) {
         Map<String, Object> response = new HashMap<>();
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication != null && authentication.isAuthenticated() &&
-                !"anonymousUser".equals(authentication.getName())) {
+        if (userDetails != null) {
             response.put("loggedIn", true);
-            response.put("username", authentication.getName());
+            response.put("username", userDetails.getUsername());
         } else {
             response.put("loggedIn", false);
         }

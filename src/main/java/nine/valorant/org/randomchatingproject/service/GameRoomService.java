@@ -114,7 +114,7 @@ public class GameRoomService {
     }
 
     /**
-     * 방에서 나가기
+     * 방에서 나가기 (방 자동 삭제 문제 해결)
      */
     public boolean leaveRoom(String roomId, String username) {
         Optional<GameRoom> roomOpt = gameRoomRepository.findById(roomId);
@@ -127,7 +127,22 @@ public class GameRoomService {
         boolean removed = room.removeParticipant(username);
 
         if (removed) {
-            // 방이 비어있으면 비활성화
+            // 방장이 나가는 경우 처리
+            if (room.isCreator(username) && !room.isEmpty()) {
+                // 남은 참가자 중 첫 번째 사람을 새 방장으로 지정
+                String newCreator = room.getParticipants().get(0);
+                room.setCreator(newCreator);
+                log.info("방 {} 의 방장이 {} 에서 {} 로 변경되었습니다", roomId, username, newCreator);
+
+                // 방장 변경 메시지 저장
+                ChatMessage creatorChangeMessage = ChatMessage.createSystemMessage(
+                        newCreator + "님이 새로운 방장이 되었습니다!", roomId
+                );
+                chatMessageRepository.save(creatorChangeMessage);
+            }
+
+            // 방이 완전히 비어있으면 비활성화 (선택사항)
+            // 만약 빈 방도 유지하고 싶다면 이 부분을 주석처리하세요
             if (room.isEmpty()) {
                 room.setActive(false);
                 log.info("방 {} 이 비어있어 비활성화되었습니다", roomId);
@@ -185,9 +200,22 @@ public class GameRoomService {
 
         for (GameRoom room : userRooms) {
             if (room.removeParticipant(username)) {
+                // 방장이 나가는 경우 처리
+                if (room.isCreator(username) && !room.isEmpty()) {
+                    String newCreator = room.getParticipants().get(0);
+                    room.setCreator(newCreator);
+
+                    ChatMessage creatorChangeMessage = ChatMessage.createSystemMessage(
+                            newCreator + "님이 새로운 방장이 되었습니다!", room.getRoomId()
+                    );
+                    chatMessageRepository.save(creatorChangeMessage);
+                }
+
+                // 방이 비어있으면 비활성화
                 if (room.isEmpty()) {
                     room.setActive(false);
                 }
+
                 gameRoomRepository.save(room);
                 leftRooms.add(room.getRoomId());
 

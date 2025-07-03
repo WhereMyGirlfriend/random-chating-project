@@ -8,7 +8,6 @@ import nine.valorant.org.randomchatingproject.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
@@ -36,14 +35,13 @@ public class ProfileController {
     @PostMapping("/password")
     public ResponseEntity<Map<String, Object>> updatePassword(
             @AuthenticationPrincipal UserDetails userDetails,
-            @Valid @RequestBody UserPasswordUpdateRequestDto request,
-            Authentication authentication) {
+            @Valid @RequestBody UserPasswordUpdateRequestDto request) {
 
         Map<String, Object> response = new HashMap<>();
 
         try {
-            // 인증 상태 재확인
-            if (userDetails == null || authentication == null || !authentication.isAuthenticated()) {
+            // 인증 상태 확인
+            if (userDetails == null) {
                 log.warn("비인증 상태에서 비밀번호 변경 시도");
                 response.put("success", false);
                 response.put("error", "인증이 필요합니다.");
@@ -124,14 +122,13 @@ public class ProfileController {
     @PostMapping("/username")
     public ResponseEntity<Map<String, Object>> updateUsername(
             @AuthenticationPrincipal UserDetails userDetails,
-            @Valid @RequestBody UsernameUpdateDto request,
-            Authentication authentication) {
+            @Valid @RequestBody UsernameUpdateDto request) {
 
         Map<String, Object> response = new HashMap<>();
 
         try {
-            // 인증 상태 재확인
-            if (userDetails == null || authentication == null || !authentication.isAuthenticated()) {
+            // 인증 상태 확인
+            if (userDetails == null) {
                 log.warn("비인증 상태에서 사용자명 변경 시도");
                 response.put("success", false);
                 response.put("error", "인증이 필요합니다.");
