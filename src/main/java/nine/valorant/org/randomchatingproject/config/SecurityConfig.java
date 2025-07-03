@@ -37,11 +37,11 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
-                        // 🚫 임시: 모든 요청 허용 (브라우저 자동 요청 포함)
+                        // 🔄 1단계: 모든 요청 허용 (JWT 필터는 활성화)
                         .anyRequest().permitAll()
-                );
-        // 🚫 JWT 필터도 임시 비활성화
-        // .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                )
+                // 🔄 1단계: JWT 필터 활성화
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
                 /* 원래 설정 (나중에 복원)
                 // JWT 필터를 Spring Security 필터 체인에 추가
