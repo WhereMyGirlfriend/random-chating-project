@@ -339,6 +339,9 @@
     let roomData = null;
     let authToken = null;
 
+    // IME 입력 상태 추적 (한글 입력 버그 해결)
+    let isComposing = false;
+
     // URL에서 roomId 추출
     const pathSegments = window.location.pathname.split('/');
     roomId = pathSegments[pathSegments.length - 1];
@@ -358,8 +361,25 @@
         checkAuth();
     });
 
-    // 인증 확인
+    // 인증 확인 (임시: 완전 비활성화)
     function checkAuth() {
+        // 🚫 임시: 기본 설정
+        currentUsername = 'TestUser';
+        authToken = 'test-token';
+
+        if (!roomId) {
+            showError('잘못된 접근입니다. 로비로 이동합니다.');
+            setTimeout(() => {
+                window.location.href = '/home';
+            }, 2000);
+            return;
+        }
+
+        // 방 정보 로드 및 연결
+        loadRoomData();
+        connectWebSocket();
+
+        /* 원래 코드 (나중에 복원)
         authToken = localStorage.getItem('authToken');
 
         if (!authToken || !isTokenValid(authToken)) {
@@ -382,7 +402,6 @@
             const payload = JSON.parse(atob(authToken.split('.')[1]));
             currentUsername = payload.sub;
 
-            // 방 정보 로드 및 연결
             loadRoomData();
             connectWebSocket();
         } catch (error) {
@@ -392,24 +411,18 @@
                 window.location.href = '/login';
             }, 2000);
         }
+        */
     }
 
-    // 방 정보 로드
+    // 방 정보 로드 (임시: 인증 헤더 제거)
     async function loadRoomData() {
         try {
             const response = await fetch(`/api/rooms/${roomId}`, {
                 headers: {
-                    'Authorization': 'Bearer ' + authToken
+                    // 🚫 임시: Authorization 헤더 제거
+                    // 'Authorization': 'Bearer ' + authToken
                 }
             });
-
-            if (response.status === 401) {
-                showError('인증이 만료되었습니다.');
-                setTimeout(() => {
-                    window.location.href = '/login';
-                }, 2000);
-                return;
-            }
 
             if (response.ok) {
                 roomData = await response.json();
@@ -456,16 +469,13 @@
         }).join('');
     }
 
-    // WebSocket 연결
+    // WebSocket 연결 (임시: 인증 헤더 제거)
     function connectWebSocket() {
         const socket = new SockJS('/ws');
         stompClient = Stomp.over(socket);
 
-        const headers = {
-            'Authorization': 'Bearer ' + authToken
-        };
-
-        stompClient.connect(headers, function() {
+        // 🚫 임시: 인증 헤더 제거
+        stompClient.connect({}, function() {
             console.log('WebSocket 연결 성공');
 
             // 방별 메시지 구독
@@ -474,8 +484,12 @@
                 addMessage(chatMessage);
             });
 
-            // 방에 입장 알림
-            stompClient.send(`/app/chat.addUser/${roomId}`, {}, JSON.stringify({}));
+            // 방에 입장 알림 (sender 정보 포함)
+            stompClient.send(`/app/chat.addUser/${roomId}`, {}, JSON.stringify({
+                sender: currentUsername,
+                type: 'JOIN',
+                roomId: roomId
+            }));
 
             // UI 업데이트
             connectionStatus.style.display = 'none';
@@ -489,15 +503,36 @@
         });
     }
 
-    // 메시지 전송 처리
+    // IME 이벤트 리스너 (한글 입력 버그 해결)
+    messageInput.addEventListener('compositionstart', function() {
+        isComposing = true;
+    });
+
+    messageInput.addEventListener('compositionend', function() {
+        isComposing = false;
+    });
+
+    // 메시지 전송 처리 (한글 입력 버그 해결)
     messageForm.addEventListener('submit', function(e) {
         e.preventDefault();
+        sendMessage();
+    });
 
+    // Enter 키 처리 (한글 입력 버그 해결)
+    messageInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    // 메시지 전송 함수
+    function sendMessage() {
         const content = messageInput.value.trim();
-        if (content && stompClient) {
+        if (content && stompClient && !isComposing) {
             const message = {
                 content: content,
-                sender: currentUsername,  // 현재 사용자명 포함
+                sender: currentUsername,
                 type: 'CHAT',
                 roomId: roomId
             };
@@ -505,7 +540,7 @@
             stompClient.send(`/app/chat.sendMessage/${roomId}`, {}, JSON.stringify(message));
             messageInput.value = '';
         }
-    });
+    }
 
     // 메시지 추가
     function addMessage(message) {
@@ -578,35 +613,10 @@
         return div.innerHTML;
     }
 
-    // JWT 토큰 유효성 검사
-    function isTokenValid(token) {
-        if (!token) return false;
-
-        try {
-            const parts = token.split('.');
-            if (parts.length !== 3) return false;
-
-            const payload = JSON.parse(atob(parts[1]));
-            const now = Math.floor(Date.now() / 1000);
-
-            return payload.exp > now;
-        } catch (error) {
-            return false;
-        }
-    }
-
     // 페이지 종료 시 WebSocket 해제
     window.addEventListener('beforeunload', function() {
         if (stompClient) {
             stompClient.disconnect();
-        }
-    });
-
-    // Enter 키로 메시지 전송
-    messageInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            messageForm.dispatchEvent(new Event('submit'));
         }
     });
 </script>

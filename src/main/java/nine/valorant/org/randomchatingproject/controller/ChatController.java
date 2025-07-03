@@ -56,17 +56,17 @@ public class ChatController {
     }
 
     /**
-     * 사용자 방 참가 처리 (테스트용: 인증 체크 제거)
+     * 사용자 방 참가 처리 (임시: 인증 체크 완전 제거)
      */
     @MessageMapping("/chat.addUser/{roomId}")
     public void addUser(@DestinationVariable String roomId,
                         @Payload ChatMessage chatMessage,
                         SimpMessageHeaderAccessor headerAccessor) {
 
-        // 테스트용: sender가 null인 경우 기본값 설정
-        String username = chatMessage.getSender();
-        if (username == null || username.trim().isEmpty()) {
-            username = "TestUser";
+        // 🚫 임시: 기본 사용자명 설정
+        String username = "TestUser";
+        if (chatMessage.getSender() != null && !chatMessage.getSender().trim().isEmpty()) {
+            username = chatMessage.getSender();
         }
 
         // 세션에 사용자 정보 저장

@@ -196,7 +196,7 @@
     </form>
 
     <div class="register-link">
-        <p>계정이 없으신가요? <a href="/user/register">회원가입</a></p>
+        <p>계정이 없으신가요? <a href="/register">회원가입</a></p>
     </div>
 </div>
 
@@ -207,19 +207,33 @@
     const errorMessage = document.getElementById('errorMessage');
     const successMessage = document.getElementById('successMessage');
 
-    // 페이지 로드 시 토큰 확인 (임시 비활성화)
+    // 페이지 로드 시 토큰 확인
     document.addEventListener('DOMContentLoaded', function() {
-        // 자동 리다이렉트 비활성화 (테스트용)
-        /*
-        const token = localStorage.getItem('authToken');
-        if (token && isValidToken(token)) {
-            window.location.href = '/home';
+        console.log('로그인 페이지 로드됨');
+
+        // 무한 리다이렉트 방지 플래그 체크
+        const redirectFlag = sessionStorage.getItem('loginRedirectFlag');
+        if (redirectFlag) {
+            console.log('무한 리다이렉트 방지 - 토큰 삭제');
+            localStorage.removeItem('authToken');
+            sessionStorage.removeItem('loginRedirectFlag');
+            return;
         }
-        */
+
+        // 이미 유효한 토큰이 있으면 바로 홈으로
+        const existingToken = localStorage.getItem('authToken');
+        if (existingToken && isValidToken(existingToken)) {
+            console.log('유효한 토큰 존재, 홈으로 이동');
+            sessionStorage.setItem('loginRedirectFlag', 'true');
+            window.location.replace('/home');
+            return;
+        }
     });
 
     loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
+
+        console.log('로그인 폼 제출됨');
 
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value.trim();
@@ -233,6 +247,8 @@
         hideMessages();
 
         try {
+            console.log('로그인 요청 전송 중...');
+
             const response = await fetch('/auth/login', {
                 method: 'POST',
                 headers: {
@@ -244,17 +260,24 @@
                 })
             });
 
+            console.log('로그인 응답 상태:', response.status);
+
             if (response.ok) {
                 const token = await response.text();
+                console.log('토큰 받음:', token ? '토큰 있음' : '토큰 없음');
+
+                // 토큰 저장
                 localStorage.setItem('authToken', token);
 
                 showSuccess('로그인 성공! 페이지를 이동합니다...');
 
-                // 즉시 이동 (setTimeout 제거)
-                window.location.href = '/home';
+                // 즉시 강제 이동 (인증 체크 우회)
+                console.log('홈으로 강제 이동');
+                window.location.replace('/home');  // replace 사용으로 뒤로가기 방지
 
             } else {
                 const errorText = await response.text();
+                console.log('로그인 실패:', errorText);
                 showError(errorText || '로그인에 실패했습니다.');
             }
         } catch (error) {
@@ -264,6 +287,8 @@
             setLoading(false);
         }
     });
+
+    // 테스트용 함수들 제거됨
 
     function setLoading(isLoading) {
         if (isLoading) {
