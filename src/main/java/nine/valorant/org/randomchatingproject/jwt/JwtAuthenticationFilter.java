@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -55,7 +56,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        String token = authorization.substring(7);
+        String token = authorization.split(" ")[1];
         log.info("추출된 토큰 길이: {}", token.length());
 
         try {
@@ -91,43 +92,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    /**
-     * JWT 필터를 건너뛸 경로인지 확인
-     */
+    private static final List<String> JWT_REQUIRED_PREFIXES = List.of(
+            "/home",
+            "/room"
+    );
+
     private boolean shouldSkipJwtFilter(String requestURI) {
-        // 정적 리소스
-        if (requestURI.startsWith("/css/") || requestURI.startsWith("/js/") ||
-                requestURI.startsWith("/images/") || requestURI.equals("/favicon.ico") ||
-                requestURI.equals("/error")) {
-            return true;
-        }
 
-        // 브라우저 자동 요청 (Chrome DevTools 포함)
-        if (requestURI.startsWith("/.well-known/") || requestURI.equals("/robots.txt") ||
-                requestURI.equals("/sitemap.xml") || requestURI.contains("/appspecific/")) {
-            return true;
+        for (String prefix : JWT_REQUIRED_PREFIXES) {
+            if (requestURI.startsWith(prefix)) {
+                return false; // 필터 적용
+            }
         }
-
-        // 인증 관련 API
-        if (requestURI.startsWith("/auth/")) {
-            return true;
-        }
-
-        // 회원가입 관련
-        if (requestURI.startsWith("/user/register") || requestURI.startsWith("/user/verify")) {
-            return true;
-        }
-
-        // 페이지 접근 (HTML 페이지들)
-        if (requestURI.equals("/login") || requestURI.equals("/register")) {
-            return true;
-        }
-
-        // WebSocket
-        if (requestURI.startsWith("/ws/")) {
-            return true;
-        }
-
-        return false;
+        return true;
     }
 }

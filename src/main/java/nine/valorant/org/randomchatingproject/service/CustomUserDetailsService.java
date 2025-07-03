@@ -2,14 +2,13 @@ package nine.valorant.org.randomchatingproject.service;
 
 import nine.valorant.org.randomchatingproject.entity.User;
 import nine.valorant.org.randomchatingproject.repository.UserRepository;
+import nine.valorant.org.randomchatingproject.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
 
 @Slf4j
 @Service
@@ -23,7 +22,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         log.info("=== 사용자 조회 시작: {} ===", username);
 
         try {
-            // 먼저 username으로 조회
+            // User 엔티티 조회
             User user = userRepository.findByUsername(username)
                     .or(() -> {
                         log.info("username으로 찾지 못함, email로 재시도: {}", username);
@@ -34,20 +33,15 @@ public class CustomUserDetailsService implements UserDetailsService {
                         return new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + username);
                     });
 
-            log.info("사용자 조회 성공: id={}, username={}, email={}",
-                    user.getId(), user.getUsername(), user.getEmail());
+            log.info("사용자 조회 성공: id={}, username={}, email={}, role={}, verified={}",
+                    user.getId(), user.getUsername(), user.getEmail(), user.getRole(), user.getVarified());
 
-            UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
-                    .username(user.getUsername())  // JWT에서 추출한 것과 일치해야 함
-                    .password(user.getPassword())
-                    .authorities(new ArrayList<>())  // 권한은 일단 비워둠
-                    .accountExpired(false)
-                    .accountLocked(false)
-                    .credentialsExpired(false)
-                    .disabled(false)
-                    .build();
+            // CustomUserDetails로 감싸서 반환
+            CustomUserDetails userDetails = new CustomUserDetails(user);
 
-            log.info("UserDetails 생성 완료: {}", userDetails.getUsername());
+            log.info("CustomUserDetails 생성 완료: username={}, authorities={}",
+                    userDetails.getUsername(), userDetails.getAuthorities());
+
             return userDetails;
 
         } catch (Exception e) {

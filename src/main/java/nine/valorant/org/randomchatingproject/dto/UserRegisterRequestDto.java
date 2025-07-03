@@ -18,4 +18,5 @@ public class UserRegisterRequestDto {
     private User.Gender gender;
     private LocalDate birthDate;
     private String phoneNumber;
+    private User.Role role;
 }

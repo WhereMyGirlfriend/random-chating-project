@@ -11,8 +11,6 @@ import nine.valorant.org.randomchatingproject.repository.VerifyMailRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.Random;
 
@@ -57,6 +55,7 @@ public class UserService {
                 .username(requestDto.getUsername())
                 .gender(requestDto.getGender())
                 .birthDate(requestDto.getBirthDate())
+                .role(User.Role.USER)
                 .phoneNumber(requestDto.getPhoneNumber())
                 .varified(false)
                 .registeredAt(java.time.LocalDate.now())

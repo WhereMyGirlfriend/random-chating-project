@@ -48,9 +48,19 @@ public class User {
     @Column(nullable = false)
     private Boolean varified;
 
+    // 역할 (기본값: USER)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    @Builder.Default
+    private Role role = Role.USER;
+
     // 성별 enum
     public enum Gender {
         MALE, FEMALE
     }
-}
 
+    // 역할 enum
+    public enum Role {
+        USER, ADMIN
+    }
+}
