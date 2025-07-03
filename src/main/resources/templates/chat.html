@@ -361,9 +361,9 @@
         checkAuth();
     });
 
-    // 인증 확인 (임시: 완전 비활성화)
+    // 인증 확인 (테스트용 수정)
     function checkAuth() {
-        // 🚫 임시: 기본 설정
+        // 테스트용: 기본 사용자명 설정
         currentUsername = 'TestUser';
         authToken = 'test-token';
 
@@ -378,51 +378,12 @@
         // 방 정보 로드 및 연결
         loadRoomData();
         connectWebSocket();
-
-        /* 원래 코드 (나중에 복원)
-        authToken = localStorage.getItem('authToken');
-
-        if (!authToken || !isTokenValid(authToken)) {
-            showError('로그인이 필요합니다. 로그인 페이지로 이동합니다.');
-            setTimeout(() => {
-                window.location.href = '/login';
-            }, 2000);
-            return;
-        }
-
-        if (!roomId) {
-            showError('잘못된 접근입니다. 로비로 이동합니다.');
-            setTimeout(() => {
-                window.location.href = '/home';
-            }, 2000);
-            return;
-        }
-
-        try {
-            const payload = JSON.parse(atob(authToken.split('.')[1]));
-            currentUsername = payload.sub;
-
-            loadRoomData();
-            connectWebSocket();
-        } catch (error) {
-            console.error('토큰 파싱 오류:', error);
-            showError('인증 오류가 발생했습니다.');
-            setTimeout(() => {
-                window.location.href = '/login';
-            }, 2000);
-        }
-        */
     }
 
-    // 방 정보 로드 (임시: 인증 헤더 제거)
+    // 방 정보 로드
     async function loadRoomData() {
         try {
-            const response = await fetch(`/api/rooms/${roomId}`, {
-                headers: {
-                    // 🚫 임시: Authorization 헤더 제거
-                    // 'Authorization': 'Bearer ' + authToken
-                }
-            });
+            const response = await fetch(`/api/rooms/${roomId}`);
 
             if (response.ok) {
                 roomData = await response.json();
@@ -469,12 +430,11 @@
         }).join('');
     }
 
-    // WebSocket 연결 (임시: 인증 헤더 제거)
+    // WebSocket 연결 (테스트용 수정)
     function connectWebSocket() {
         const socket = new SockJS('/ws');
         stompClient = Stomp.over(socket);
 
-        // 🚫 임시: 인증 헤더 제거
         stompClient.connect({}, function() {
             console.log('WebSocket 연결 성공');
 

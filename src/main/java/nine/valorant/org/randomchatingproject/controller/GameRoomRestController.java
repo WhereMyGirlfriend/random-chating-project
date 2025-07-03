@@ -26,18 +26,26 @@ public class GameRoomRestController {
     private final SimpMessagingTemplate messagingTemplate;
 
     /**
-     * 새 게임방 생성
+     * 새 게임방 생성 (테스트용: 인증 체크 비활성화)
      */
     @PostMapping("/create")
     public ResponseEntity<?> createRoom(@RequestBody CreateRoomRequest request,
                                         @AuthenticationPrincipal UserDetails userDetails) {
         try {
+            // 테스트용: 기본 사용자명 설정
+            String username = "TestUser";
+            if (userDetails != null) {
+                username = userDetails.getUsername();
+            }
+
+            /*
+            // 원래 코드 (나중에 복원)
             if (userDetails == null) {
                 return ResponseEntity.status(401)
                         .body(Map.of("error", "로그인이 필요합니다."));
             }
-
             String username = userDetails.getUsername();
+            */
 
             if (request.getGameName() == null || request.getGameName().trim().isEmpty()) {
                 return ResponseEntity.badRequest()
@@ -75,7 +83,7 @@ public class GameRoomRestController {
     }
 
     /**
-     * 활성 방 목록 조회
+     * 활성 방 목록 조회 (테스트용: 인증 불필요)
      */
     @GetMapping("/list")
     public ResponseEntity<List<GameRoom>> getRoomList() {
@@ -89,7 +97,7 @@ public class GameRoomRestController {
     }
 
     /**
-     * 특정 방 상세 조회
+     * 특정 방 상세 조회 (테스트용: 인증 불필요)
      */
     @GetMapping("/{roomId}")
     public ResponseEntity<?> getRoom(@PathVariable String roomId) {
@@ -108,16 +116,25 @@ public class GameRoomRestController {
     }
 
     /**
-     * 내가 참가한 방 목록 조회
+     * 내가 참가한 방 목록 조회 (테스트용: 인증 체크 비활성화)
      */
     @GetMapping("/my-rooms")
     public ResponseEntity<List<GameRoom>> getMyRooms(@AuthenticationPrincipal UserDetails userDetails) {
         try {
+            // 테스트용: 기본 사용자명 설정
+            String username = "TestUser";
+            if (userDetails != null) {
+                username = userDetails.getUsername();
+            }
+
+            /*
+            // 원래 코드 (나중에 복원)
             if (userDetails == null) {
                 return ResponseEntity.status(401).build();
             }
-
             String username = userDetails.getUsername();
+            */
+
             List<GameRoom> myRooms = gameRoomService.getUserActiveRooms(username);
             return ResponseEntity.ok(myRooms);
         } catch (Exception e) {
@@ -127,18 +144,27 @@ public class GameRoomRestController {
     }
 
     /**
-     * 방 삭제
+     * 방 삭제 (테스트용: 인증 체크 비활성화)
      */
     @DeleteMapping("/{roomId}")
     public ResponseEntity<?> deleteRoom(@PathVariable String roomId,
                                         @AuthenticationPrincipal UserDetails userDetails) {
         try {
+            // 테스트용: 기본 사용자명 설정
+            String username = "TestUser";
+            if (userDetails != null) {
+                username = userDetails.getUsername();
+            }
+
+            /*
+            // 원래 코드 (나중에 복원)
             if (userDetails == null) {
                 return ResponseEntity.status(401)
                         .body(Map.of("error", "로그인이 필요합니다."));
             }
-
             String username = userDetails.getUsername();
+            */
+
             boolean deleted = gameRoomService.deleteRoom(roomId, username);
 
             if (deleted) {
@@ -162,7 +188,7 @@ public class GameRoomRestController {
     }
 
     /**
-     * 방 통계 조회
+     * 방 통계 조회 (테스트용: 인증 불필요)
      */
     @GetMapping("/statistics")
     public ResponseEntity<Map<String, Object>> getRoomStatistics() {
